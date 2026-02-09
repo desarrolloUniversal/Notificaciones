@@ -2,21 +2,23 @@
 import { validarRespuestaAPI } from './validarRespuestaAPI'
 import { parseDataNotification } from './parseDataNotification'
 
-const API_URL = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificaciones?site=eluniversal'
+
+// Puedes cambiar entre IP o subdominio según disponibilidad del backend
+const SERVER_URL = 'https://desarrollo.eluniversal.com.mx/notificaciones';
+// const SERVER_URL = 'http://172.16.250.230/notificaciones';
+
+const USERNAME = 'pruebasdesarrollo';
+const PASSWORD = 'EUpd2026@@';
+
 
 export const fetchNotifications = async () => {
-  // const response = await fetch(API_URL)
-  
-  // if (!response.ok) {
-  //   throw new Error(`Error HTTP: ${response.status} ${response.statusText}`)
-  // }
-  
-  // const data: ApiResponse = await response.json()
-
-    try {
-    const response = await fetch(API_URL, {
+  try {
+    // Autenticación básica
+    const basicAuth = btoa(`${USERNAME}:${PASSWORD}`);
+    const response = await fetch(SERVER_URL, {
       method: 'GET',
       headers: {
+        'Authorization': `Basic ${basicAuth}`,
         'Content-Type': 'application/json',
       },
     });
@@ -25,22 +27,19 @@ export const fetchNotifications = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data= await response.json();
+    const data = await response.json();
 
     if (data.status !== 0) {
       throw new Error(data.message || 'Error en respuesta del endpoint');
     }
 
-    validarRespuestaAPI(data)
-    
-    const notificaciones = parseDataNotification(data.Notificaciones)
-    
-    return notificaciones
-
+    validarRespuestaAPI(data);
+    const notificaciones = parseDataNotification(data.Notificaciones);
+    return notificaciones;
   } catch (error) {
     console.error('[notificationPollingService] Error fetching notifications:', error);
     throw error;
   }
 
-  
+
 }
