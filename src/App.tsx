@@ -19,6 +19,11 @@ function App() {
   } = useNotificacionesStore()
 
   const [urlInput, setUrlInput] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalUrlInput, setModalUrlInput] = useState('')
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [isLoadingNewNotification, setIsLoadingNewNotification] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
 
   useEffect(() => {
     fetchNotifications()
@@ -30,6 +35,57 @@ function App() {
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrlInput(e.target.value)
+  }
+
+  const handleInputClick = () => {
+    setModalUrlInput(urlInput)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+  }
+
+  const handleModalUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setModalUrlInput(e.target.value)
+  }
+
+  const handleApplyUrl = () => {
+    setUrlInput(modalUrlInput)
+    setIsModalOpen(false)
+    
+    // Iniciar simulación de carga
+    setIsLoadingNewNotification(true)
+    setLoadingProgress(0)
+    
+    // Simular progreso de carga
+    const progressInterval = setInterval(() => {
+      setLoadingProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval)
+          setTimeout(() => {
+            setIsLoadingNewNotification(false)
+            fetchNotifications(true)
+          }, 500)
+          return 100
+        }
+        return prev + 10
+      })
+    }, 300)
+  }
+
+  const handleDiscard = () => {
+    setIsConfirmModalOpen(true)
+  }
+
+  const handleConfirmDiscard = () => {
+    setModalUrlInput('')
+    setIsModalOpen(false)
+    setIsConfirmModalOpen(false)
+  }
+
+  const handleCancelDiscard = () => {
+    setIsConfirmModalOpen(false)
   }
 
   const formatDate = (dateString: string) => {
@@ -76,7 +132,9 @@ function App() {
               placeholder="Ingrese la URL del endpoint..."
               value={urlInput}
               onChange={handleUrlChange}
+              onClick={handleInputClick}
               disabled={loading}
+              readOnly
             />
           </div>
           <button 
@@ -89,6 +147,62 @@ function App() {
           </button>
         </div>
       </div>
+
+      {/* Modal de configuración de URL */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={handleModalClose}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Configurar Endpoint Personalizado</h2>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body">
+              <label className="modal-label">URL del servidor:</label>
+              <div className="modal-input-wrapper">
+                <span className="modal-input-icon">🌐</span>
+                <input
+                  type="text"
+                  className="modal-input"
+                  placeholder="https://..."
+                  value={modalUrlInput}
+                  onChange={handleModalUrlChange}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-btn modal-btn-primary" onClick={handleApplyUrl}>
+                <span className="btn-icon">✓</span>
+                Agregar URL
+              </button>
+              <button className="modal-btn modal-btn-secondary" onClick={handleDiscard}>
+                Descartar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación al descartar */}
+      {isConfirmModalOpen && (
+        <div className="modal-overlay" onClick={handleCancelDiscard}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">⚠️</div>
+            <h3 className="confirm-title">Descartar URL</h3>
+            <p className="confirm-message">
+              La URL quedará pendiente y no se aplicará a las notificaciones.
+            </p>
+            <div className="confirm-actions">
+              <button className="confirm-btn confirm-btn-danger" onClick={handleConfirmDiscard}>
+                Sí, descartar
+              </button>
+              <button className="confirm-btn confirm-btn-cancel" onClick={handleCancelDiscard}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Banner de error */}
       {error && (
@@ -108,6 +222,32 @@ function App() {
       {!loading && !error && notifications.length === 0 && (
         <div className="empty-message">
           📭 No hay notificaciones disponibles
+        </div>
+      )}
+
+      {/* Card de carga de nueva notificación */}
+      {isLoadingNewNotification && (
+        <div className="loading-notification-card">
+          <div className="loading-card-content">
+            <div className="loading-card-icon">🔄</div>
+            <div className="loading-card-info">
+              <div className="loading-card-title">Cargando nueva notificación desde URL personalizada...</div>
+              <div className="loading-progress-bar">
+                <div 
+                  className="loading-progress-fill" 
+                  style={{ width: `${loadingProgress}%` }}
+                >
+                  <span className="loading-progress-text">{loadingProgress}%</span>
+                </div>
+              </div>
+              <div className="loading-card-status">
+                {loadingProgress < 30 && '⏳ Conectando con el servidor...'}
+                {loadingProgress >= 30 && loadingProgress < 70 && '📥 Obteniendo datos...'}
+                {loadingProgress >= 70 && loadingProgress < 100 && '✅ Procesando información...'}
+                {loadingProgress === 100 && '✨ ¡Completado!'}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
