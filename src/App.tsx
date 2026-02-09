@@ -24,6 +24,12 @@ function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isLoadingNewNotification, setIsLoadingNewNotification] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [pendingNotifications, setPendingNotifications] = useState<Array<{
+    id: string;
+    url: string;
+    timestamp: string;
+    notification: typeof notifications[0];
+  }>>([])
 
   useEffect(() => {
     fetchNotifications()
@@ -79,6 +85,28 @@ function App() {
   }
 
   const handleConfirmDiscard = () => {
+    // Guardar notificación como pendiente
+    if (modalUrlInput.trim()) {
+      const pendingNotification = {
+        id: Date.now().toString(),
+        url: modalUrlInput,
+        timestamp: new Date().toISOString(),
+        notification: {
+          id: Date.now().toString(),
+          thumbnail: '',
+          seccion: 'Personalizada',
+          titulo: `Notificación desde: ${modalUrlInput}`,
+          subtitulo: 'URL descartada - Pendiente de aplicar',
+          fechaEnvio: new Date().toISOString().replace('T', ' ').split('.')[0],
+          estadoEnvio: 'Pendiente',
+          totalEnvios: 0,
+          leidos: 0,
+          totalLeidos: 0,
+          usuarios: 'Sin definir'
+        }
+      }
+      setPendingNotifications(prev => [pendingNotification, ...prev])
+    }
     setModalUrlInput('')
     setIsModalOpen(false)
     setIsConfirmModalOpen(false)
@@ -86,6 +114,10 @@ function App() {
 
   const handleCancelDiscard = () => {
     setIsConfirmModalOpen(false)
+  }
+
+  const handleRemovePending = (id: string) => {
+    setPendingNotifications(prev => prev.filter(pending => pending.id !== id))
   }
 
   const formatDate = (dateString: string) => {
@@ -222,6 +254,65 @@ function App() {
       {!loading && !error && notifications.length === 0 && (
         <div className="empty-message">
           📭 No hay notificaciones disponibles
+        </div>
+      )}
+
+      {/* Tabla de Notificaciones Pendientes */}
+      {pendingNotifications.length > 0 && (
+        <div className="pending-section">
+          <div className="pending-banner">
+            <span className="pending-icon">📌</span>
+            <span className="pending-title">NOTIFICACIONES PENDIENTES</span>
+            <span className="pending-count">{pendingNotifications.length}</span>
+          </div>
+          <div className="table-wrapper pending-table-wrapper">
+            <table className="notifications-table pending-notifications-table">
+              <thead>
+                <tr>
+                  <th className="center-header">Thumbnail</th>
+                  <th className="center-header">Sección</th>
+                  <th className="center-header">Título</th>
+                  <th className="center-header">Fecha de Envío</th>
+                  <th className="center-header">Estado<br />de envío</th>
+                  <th className="center-header">Total de envíos</th>
+                  <th>Usuarios</th>
+                  <th className="center-header">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingNotifications.map((pending, index) => (
+                  <tr key={pending.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                    <td>
+                      <img 
+                        src={getImageBySectionOrId(pending.notification.thumbnail)} 
+                        alt={pending.notification.titulo}
+                        className="thumbnail"
+                      />
+                    </td>
+                    <td>{pending.notification.seccion}</td>
+                    <td className="title-cell">{pending.notification.titulo}</td>
+                    <td>{formatDate(pending.notification.fechaEnvio)}</td>
+                    <td>
+                      <span className="status-badge status-pending-orange">
+                        ⏳ {pending.notification.estadoEnvio}
+                      </span>
+                    </td>
+                    <td className="number-cell">{pending.notification.totalEnvios.toLocaleString()}</td>
+                    <td>{pending.notification.usuarios}</td>
+                    <td className="actions-cell">
+                      <button 
+                        className="delete-btn"
+                        onClick={() => handleRemovePending(pending.id)}
+                        title="Eliminar notificación pendiente"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

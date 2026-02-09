@@ -685,6 +685,149 @@
   font-family: 'Segoe UI', sans-serif;
 }
 
+/* Pending Notifications Section */
+.pending-section {
+  margin-bottom: 2rem;
+  animation: slideDown 0.4s ease;
+}
+
+.pending-banner {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  border: 3px dashed #f39c12;
+  border-radius: 12px 12px 0 0;
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.pending-icon {
+  font-size: 1.8rem;
+  animation: bounce 0.6s ease infinite;
+}
+
+.pending-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #d35400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  flex: 1;
+}
+
+.pending-count {
+  background: #e67e22;
+  color: #ffffff;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4);
+}
+
+.pending-table-wrapper {
+  border-radius: 0 0 12px 12px;
+  border: 3px solid #f39c12;
+  border-top: none;
+  background: #fffbf0;
+}
+
+.pending-notifications-table thead {
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+  border-bottom: 3px solid #f39c12;
+}
+
+.pending-notifications-table thead th {
+  color: #ffffff;
+}
+
+.pending-notifications-table tbody tr {
+  transition: all 0.3s ease;
+}
+
+.pending-notifications-table tbody tr.even-row {
+  background: #fff9e6;
+}
+
+.pending-notifications-table tbody tr.odd-row {
+  background: #fffbf0;
+}
+
+.pending-notifications-table tbody tr:hover {
+  background: #ffe8b3 !important;
+  transform: scale(1.005);
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+}
+
+.pending-notifications-table td {
+  color: #7d5a00;
+  border-bottom: 1px solid #ffd89b;
+}
+
+.pending-notifications-table .title-cell {
+  color: #d35400;
+  font-weight: 600;
+}
+
+.status-pending-orange {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Actions Cell and Delete Button */
+.actions-cell {
+  text-align: center;
+  padding: 0.8rem !important;
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+}
+
+.delete-btn:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .controls-group {
@@ -712,5 +855,19 @@
   .page-title {
     width: 100%;
     font-size: 2rem;
+  }
+
+  .pending-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.8rem;
+  }
+
+  .pending-title {
+    font-size: 1rem;
+  }
+
+  .pending-count {
+    align-self: center;
   }
 }
