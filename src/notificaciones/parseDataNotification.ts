@@ -5,7 +5,7 @@ export const parseDataNotification = (apiNotifications: ApiNotification[]): Noti
   const transformedNotifications = apiNotifications.map((apiNotif) => {
     return {
       id: apiNotif.idarticulo,
-      thumbnail: '',
+      thumbnail: apiNotif.imageurl || '',
       seccion: apiNotif.title,
       titulo: apiNotif.content,
       subtitulo: '',

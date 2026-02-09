@@ -1,6 +1,6 @@
 import './App.css'
 import elUniversalLogo from './assets/images/el_universal.png'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
 
 const getImageBySectionOrId = (thumbnail: string) => {
@@ -18,12 +18,18 @@ function App() {
     fetchNotifications
   } = useNotificacionesStore()
 
+  const [urlInput, setUrlInput] = useState('')
+
   useEffect(() => {
     fetchNotifications()
   }, [fetchNotifications])
 
   const handleRefresh = () => {
     fetchNotifications(true)
+  }
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrlInput(e.target.value)
   }
 
   const formatDate = (dateString: string) => {
@@ -61,14 +67,27 @@ function App() {
     <div className="container">
       <div className="header-section">
         <h1 className="page-title">Notificaciones</h1>
-        <button 
-          className="refresh-btn" 
-          onClick={handleRefresh}
-          disabled={loading}
-        >
-          <span className="refresh-icon">{loading ? '⏳' : '↻'}</span>
-          {loading ? 'Cargando...' : 'Actualizar'}
-        </button>
+        <div className="controls-group">
+          <div className="url-input-container">
+            <span className="url-icon">🌐</span>
+            <input
+              type="text"
+              className="url-input"
+              placeholder="Ingrese la URL del endpoint..."
+              value={urlInput}
+              onChange={handleUrlChange}
+              disabled={loading}
+            />
+          </div>
+          <button 
+            className="refresh-btn" 
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <span className="refresh-icon">{loading ? '⏳' : '↻'}</span>
+            {loading ? 'Cargando...' : 'Actualizar'}
+          </button>
+        </div>
       </div>
 
       {/* Banner de error */}
@@ -104,8 +123,6 @@ function App() {
               <th className="center-header">Fecha de Envío</th>
               <th className="center-header">Estado<br />de envío</th>
               <th className="center-header">Total de envíos</th>
-              <th>Leídos</th>
-              <th className="center-header">Total de leídos</th>
               <th>Usuarios</th>
             </tr>
           </thead>
@@ -128,8 +145,6 @@ function App() {
                   </span>
                 </td>
                 <td className="number-cell">{notification.totalEnvios.toLocaleString()}</td>
-                <td className="number-cell">{notification.leidos.toLocaleString()}</td>
-                <td className="number-cell">{notification.totalLeidos.toLocaleString()}</td>
                 <td>{notification.usuarios}</td>
               </tr>
             ))}

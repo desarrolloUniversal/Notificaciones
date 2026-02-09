@@ -17,6 +17,7 @@ export interface ApiNotification {
   title: string
   idarticulo: string
   userid: string
+  imageurl: string
 }
 
 export interface Notification {
