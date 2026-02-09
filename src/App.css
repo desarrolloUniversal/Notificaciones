@@ -209,6 +209,9 @@
   max-width: 250px;
   font-family: 'Georgia', 'Times New Roman', serif;
   letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .subtitle-cell {
@@ -769,6 +772,13 @@
 .pending-notifications-table .title-cell {
   color: #d35400;
   font-weight: 600;
+  max-width: 280px;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .status-pending-orange {
