@@ -2,6 +2,7 @@ import './App.css'
 import elUniversalLogo from './assets/images/el_universal.png'
 import { useEffect, useState } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
+import { useAuthStore } from './auth/useAuthStore'
 import { LoginModal } from './components/LoginModal'
 
 const getImageBySectionOrId = (thumbnail: string) => {
@@ -19,6 +20,13 @@ function App() {
     fetchNotifications
   } = useNotificacionesStore()
 
+  const { 
+    isAuthenticated, 
+    username, 
+    logout,
+    checkAuth 
+  } = useAuthStore()
+
   const [urlInput, setUrlInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalUrlInput, setModalUrlInput] = useState('')
@@ -33,6 +41,11 @@ function App() {
     notification: typeof notifications[0];
   }>>([])
 
+  // Verificar autenticación al cargar
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
+
   useEffect(() => {
     fetchNotifications()
   }, [fetchNotifications])
@@ -42,11 +55,22 @@ function App() {
   }
 
   const handleLoginClick = () => {
-    setIsLoginModalOpen(true)
+    if (isAuthenticated) {
+      // Si ya está autenticado, hacer logout
+      logout()
+    } else {
+      // Si no está autenticado, abrir modal de login
+      setIsLoginModalOpen(true)
+    }
   }
 
   const handleCloseLoginModal = () => {
     setIsLoginModalOpen(false)
+  }
+
+  const handleLoginSuccess = () => {
+    // Refrescar notificaciones después del login
+    fetchNotifications(true)
   }
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,12 +241,19 @@ function App() {
           <button 
             className="login-btn"
             onClick={handleLoginClick}
+            title={isAuthenticated ? `Cerrar sesión de ${username}` : 'Iniciar sesión'}
           >
             <svg className="login-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#2c3e50"/>
               <path d="M12 14C6.47715 14 2 18.4772 2 24H22C22 18.4772 17.5228 14 12 14Z" fill="#2c3e50"/>
             </svg>
-            Iniciar Sesión
+            {isAuthenticated ? (
+              <span>
+                {username} <span style={{ fontSize: '0.9em', opacity: 0.8 }}>(Salir)</span>
+              </span>
+            ) : (
+              'Iniciar Sesión'
+            )}
           </button>
         </div>
       </div>
@@ -444,7 +475,8 @@ function App() {
       {/* Modal de Inicio de Sesión */}
       <LoginModal 
         isOpen={isLoginModalOpen} 
-        onClose={handleCloseLoginModal} 
+        onClose={handleCloseLoginModal}
+        onSuccess={handleLoginSuccess}
       />
     </div>
   )
