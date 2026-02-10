@@ -209,9 +209,10 @@
   max-width: 250px;
   font-family: 'Georgia', 'Times New Roman', serif;
   letter-spacing: 0.3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .subtitle-cell {
@@ -810,6 +811,40 @@
 .actions-cell {
   text-align: center;
   padding: 0.8rem !important;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  border-bottom: none !important;
+  vertical-align: middle;
+  padding-top: 4.5rem !important;
+}
+
+.apply-btn {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apply-btn:hover {
+  background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.5);
+}
+
+.apply-btn:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
 }
 
 .delete-btn {

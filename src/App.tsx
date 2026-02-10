@@ -120,6 +120,33 @@ function App() {
     setPendingNotifications(prev => prev.filter(pending => pending.id !== id))
   }
 
+  const handleApplyPending = (pending: typeof pendingNotifications[0]) => {
+    // Aplicar la URL pendiente
+    setUrlInput(pending.url)
+    
+    // Remover de pendientes
+    setPendingNotifications(prev => prev.filter(p => p.id !== pending.id))
+    
+    // Iniciar simulación de carga
+    setIsLoadingNewNotification(true)
+    setLoadingProgress(0)
+    
+    // Simular progreso de carga
+    const progressInterval = setInterval(() => {
+      setLoadingProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval)
+          setTimeout(() => {
+            setIsLoadingNewNotification(false)
+            fetchNotifications(true)
+          }, 500)
+          return 100
+        }
+        return prev + 10
+      })
+    }, 300)
+  }
+
   const formatDate = (dateString: string) => {
     // Convertir formato "2026/01/09T14:34:14" a "2026-01-09T14:34:14"
     const normalizedDate = dateString.replace(/\//g, '-')
@@ -300,6 +327,13 @@ function App() {
                     <td className="number-cell">{pending.notification.totalEnvios.toLocaleString()}</td>
                     <td>{pending.notification.usuarios}</td>
                     <td className="actions-cell">
+                      <button 
+                        className="apply-btn"
+                        onClick={() => handleApplyPending(pending)}
+                        title="Aplicar URL y cargar notificaciones"
+                      >
+                        ↑
+                      </button>
                       <button 
                         className="delete-btn"
                         onClick={() => handleRemovePending(pending.id)}
