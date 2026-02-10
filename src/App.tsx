@@ -222,7 +222,7 @@ function App() {
             <input
               type="text"
               className="url-input"
-              placeholder="Ingrese la URL del endpoint..."
+              placeholder="Ingrese la URL"
               value={urlInput}
               onChange={handleUrlChange}
               onClick={handleInputClick}
