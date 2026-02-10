@@ -2,6 +2,7 @@ import './App.css'
 import elUniversalLogo from './assets/images/el_universal.png'
 import { useEffect, useState } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
+import { LoginModal } from './components/LoginModal'
 
 const getImageBySectionOrId = (thumbnail: string) => {
     if (thumbnail && thumbnail.startsWith('http')) {
@@ -24,6 +25,7 @@ function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isLoadingNewNotification, setIsLoadingNewNotification] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [pendingNotifications, setPendingNotifications] = useState<Array<{
     id: string;
     url: string;
@@ -37,6 +39,14 @@ function App() {
 
   const handleRefresh = () => {
     fetchNotifications(true)
+  }
+
+  const handleLoginClick = () => {
+    setIsLoginModalOpen(true)
+  }
+
+  const handleCloseLoginModal = () => {
+    setIsLoginModalOpen(false)
   }
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,6 +214,16 @@ function App() {
             <span className="refresh-icon">{loading ? '⏳' : '↻'}</span>
             {loading ? 'Cargando...' : 'Actualizar'}
           </button>
+          <button 
+            className="login-btn"
+            onClick={handleLoginClick}
+          >
+            <svg className="login-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#2c3e50"/>
+              <path d="M12 14C6.47715 14 2 18.4772 2 24H22C22 18.4772 17.5228 14 12 14Z" fill="#2c3e50"/>
+            </svg>
+            Iniciar Sesión
+          </button>
         </div>
       </div>
 
@@ -213,6 +233,9 @@ function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Configurar Endpoint Personalizado</h2>
+              <button className="modal-close-btn" onClick={handleModalClose}>
+                ✕
+              </button>
             </div>
             <div className="modal-divider"></div>
             <div className="modal-body">
@@ -417,6 +440,12 @@ function App() {
         </table>
       </div>
       )}
+
+      {/* Modal de Inicio de Sesión */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={handleCloseLoginModal} 
+      />
     </div>
   )
 }
