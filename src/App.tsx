@@ -39,11 +39,12 @@ function App() {
     setCurrentUser
   } = usePendingNotificationsStore()
 
-  // Sincronizar usuario actual con el store de notificaciones pendientes
+  // Sincronizar usuario actual con store de notificaciones pendientes
   useEffect(() => {
     setCurrentUser(isAuthenticated ? username : null)
   }, [isAuthenticated, username, setCurrentUser])
 
+  // Obtener notificaciones del usuario actual
   const pendingNotifications = getPendingNotifications()
 
   const [urlInput, setUrlInput] = useState('')
@@ -133,7 +134,6 @@ function App() {
     
     // Analizar URL
     const analysis = analyzeUrl(url)
-    console.log('🔍 [handleApplyUrl] Análisis de URL:', analysis)
     
     if (!analysis.isValid) {
       alert(`❌ Error al analizar URL\n\n${analysis.error}`)
@@ -146,55 +146,30 @@ function App() {
     setLoadingProgress(0)
     setLoadingError(null)
     
-    console.log('\n🚀 [handleApplyUrl] Iniciando carga de notificación')
-    console.log('📋 URL original:', url)
-    console.log('📍 Pathname:', analysis.pathname)
-    console.log('🏷️ Sección:', analysis.section)
-    
     try {
       // Progreso: 0-30% - Conectando
       setLoadingProgress(10)
       await new Promise(resolve => setTimeout(resolve, 300))
       setLoadingProgress(30)
       
-      console.log('\n📡 [handleApplyUrl] Llamando a API de stories...')
-      
       // Progreso: 30-70% - Obteniendo datos
       const storyData = await fetchStoryFromUrl(url)
-      
-      console.log('✅ [handleApplyUrl] Respuesta recibida:', {
-        id: storyData.idarticulo,
-        hasHeadline: !!storyData.headlines_basic,
-        hasPromo: !!storyData.promo_items,
-        section: storyData.primary_section_path
-      })
       
       setLoadingProgress(50)
       await new Promise(resolve => setTimeout(resolve, 200))
       setLoadingProgress(70)
       
       // Progreso: 70-100% - Procesando información
-      console.log('\n🔄 [handleApplyUrl] Parseando story a notificación...')
       const notification = parseStoryToNotification(storyData, url)
-      
-      console.log('✅ [handleApplyUrl] Notificación creada:', {
-        id: notification.id,
-        titulo: notification.titulo.substring(0, 50) + '...',
-        seccion: notification.seccion,
-        thumbnail: notification.thumbnail ? 'Sí' : 'No'
-      })
       
       setLoadingProgress(90)
       await new Promise(resolve => setTimeout(resolve, 200))
       
-      // Agregar a notificaciones pendientes
+      // Agregar a notificaciones pendientes del usuario actual
       addPendingNotification(notification)
       
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
-      
-      console.log('\n✨ [handleApplyUrl] ¡Notificación agregada a pendientes exitosamente!')
-      console.log('📊 Total de pendientes:', pendingNotifications.length + 1)
     } catch (error) {
       console.error('\n❌ [handleApplyUrl] ERROR al procesar URL:', error)
       console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A')
@@ -221,8 +196,6 @@ function App() {
       return
     }
     
-    console.log('📤 Iniciando envío de notificación pendiente:', pending)
-    
     setUrlInput(pending.url)
     setIsLoadingNewNotification(true)
     setLoadingProgress(0)
@@ -237,8 +210,6 @@ function App() {
       
       setLoadingProgress(70)
       await new Promise(resolve => setTimeout(resolve, 300))
-      
-      console.log('✅ Notificación enviada exitosamente:', result)
       
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
