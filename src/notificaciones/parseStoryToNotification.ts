@@ -115,8 +115,6 @@ export const parseStoryToNotification = (
   storyData: StoryApiResponse, 
   originalUrl: string
 ): PendingNotificationFromUrl => {
-  console.log('🔄 [parseStoryToNotification] Parseando story a notificación pendiente')
-  
   const thumbnail = extractThumbnail(storyData.promo_items || '{}')
   const seccion = extractSeccion(storyData.taxonomy || '{}', storyData.primary_section_path || '')
   const titulo = extractTitulo(storyData.headlines_basic || '')
@@ -140,12 +138,6 @@ export const parseStoryToNotification = (
     usuarios: 'Sistema', // TODO: Obtener desde sistema de login
     timestamp: new Date().toISOString(),
   }
-  
-  console.log('✅ [parseStoryToNotification] Notificación parseada:', {
-    id: notification.id,
-    titulo: notification.titulo,
-    seccion: notification.seccion,
-  })
   
   return notification
 }

@@ -12,16 +12,12 @@ export class AuthService {
    * Realiza el login con credenciales y obtiene un token de acceso
    */
   static async login(credentials: LoginCredentials): Promise<AuthToken> {
-    console.log('🔐 [Auth] Iniciando login...')
     try {
       // Intentar primero con JSON
       const body = {
         usuario: credentials.email,
         pass: credentials.password
       }
-      
-      console.log('📤 [Auth] POST →', AUTH_URL)
-      console.log('📝 [Auth] Body:', { usuario: credentials.email, pass: '***' })
       
       const response = await fetch(AUTH_URL, {
         method: 'POST',
@@ -31,12 +27,8 @@ export class AuthService {
         body: JSON.stringify(body),
       })
 
-      console.log('📥 [Auth] Status:', response.status, response.statusText)
-      console.log('📄 [Auth] Content-Type:', response.headers.get('content-type'))
-
       // Obtener y parsear la respuesta
       const responseText = await response.text()
-      console.log('📋 [Auth] Response (primeros 300 chars):', responseText.substring(0, 300))
       
       // Verificar si la respuesta es HTML (error del servidor)
       if (responseText.trim().startsWith('<')) {
@@ -63,8 +55,6 @@ export class AuthService {
         console.warn('⚠️ [Auth] Login rechazado:', data.message || 'Credenciales inválidas')
         throw new Error(data.message || 'Credenciales inválidas')
       }
-
-      console.log('✅ [Auth] Login exitoso:', credentials.email)
 
       // Crear token basado en las credenciales validadas
       const basicAuth = btoa(`${credentials.email}:${credentials.password}`)

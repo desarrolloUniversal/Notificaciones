@@ -158,8 +158,6 @@ export const useAuthStore = create<AuthState>()(
           state.expiresAt = null
           state.rememberMe = false
           localStorage.removeItem('auth-remember-me')
-        } else if (state.token && state.username) {
-          console.log('✅ [Auth] Sesión restaurada:', state.username)
         }
       },
 

@@ -10,9 +10,6 @@ const STORIES_API_BASE_URL = isDevelopment
 
 const WEBSITE = 'eluniversal'
 
-console.log('🔧 [fetchStoryFromUrl] Modo:', isDevelopment ? 'Desarrollo (con proxy)' : 'Producción (directo)')
-console.log('🔧 [fetchStoryFromUrl] API URL base:', STORIES_API_BASE_URL)
-
 /**
  * Extrae la ruta relativa de una URL completa
  * Ejemplo: https://www.eluniversal.com.mx/espectaculos/articulo → /espectaculos/articulo
@@ -35,20 +32,11 @@ export const extractWebsiteUrl = (fullUrl: string): string => {
  */
 export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiResponse> => {
   try {
-    console.log('🔍 [fetchStoryFromUrl] Extrayendo story desde URL:', fullUrl)
-    
     // Extraer la ruta relativa
     const websiteUrl = extractWebsiteUrl(fullUrl)
-    console.log('📍 [fetchStoryFromUrl] Ruta relativa extraída:', websiteUrl)
     
     // Construir URL de la API
     const apiUrl = `${STORIES_API_BASE_URL}?website=${WEBSITE}&website_url=${encodeURIComponent(websiteUrl)}`
-    console.log('🌐 [fetchStoryFromUrl] Llamando a API:', apiUrl)
-    console.log('🔗 [fetchStoryFromUrl] Parámetros:', {
-      website: WEBSITE,
-      website_url: websiteUrl,
-      encoded: encodeURIComponent(websiteUrl)
-    })
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -57,18 +45,10 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
       },
     })
     
-    console.log('📡 [fetchStoryFromUrl] Respuesta HTTP:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries())
-    })
-    
     // Intentar leer el body incluso si hay error
     let responseText = ''
     try {
       responseText = await response.text()
-      console.log('📄 [fetchStoryFromUrl] Body de respuesta:', responseText.substring(0, 500))
     } catch (textError) {
       console.error('⚠️ [fetchStoryFromUrl] No se pudo leer el body:', textError)
     }
@@ -107,12 +87,6 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
       console.error('❌ [fetchStoryFromUrl] Respuesta sin idarticulo:', data)
       throw new Error('La respuesta no contiene un ID de artículo válido. La API devolvió datos incompletos.')
     }
-    
-    console.log('✅ [fetchStoryFromUrl] Story obtenido exitosamente:', {
-      id: data.idarticulo,
-      titulo: data.headlines_basic?.substring(0, 50) + '...',
-      seccion: data.primary_section_path
-    })
     
     return data
   } catch (error) {

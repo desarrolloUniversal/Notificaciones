@@ -22,7 +22,7 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
 /**
  * Envía una notificación al endpoint de envío
  * 
- * @param notification Notificación pendiente a enviar
+ * @param _notification Notificación pendiente a enviar (parámetro usado cuando se habilite el endpoint)
  * @returns Promise que se resuelve cuando el envío es exitoso
  * @throws Error si el envío falla
  * 
@@ -30,26 +30,21 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
  * ```ts
  * try {
  *   const result = await sendNotification(pendingNotification)
- *   console.log('Notificación enviada:', result)
  * } catch (error) {
- *   console.error('Error al enviar:', error)
+ *   // Manejar error
  * }
  * ```
  */
-export const sendNotification = async (notification: PendingNotificationFromUrl): Promise<{
+export const sendNotification = async (_notification: PendingNotificationFromUrl): Promise<{
   success: boolean
   message: string
   sentAt: string
 }> => {
   try {
-    console.log('📤 [sendNotification] Preparando envío de notificación:', notification.id)
-    
-    const payload = prepareSendPayload(notification)
-    
-    console.log('📦 [sendNotification] Payload preparado:', payload)
-    
     // TODO: Descomentar y configurar cuando el endpoint esté disponible
     /*
+    const payload = prepareSendPayload(_notification)
+    
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -66,8 +61,6 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     
     const data = await response.json()
     
-    console.log('✅ [sendNotification] Notificación enviada exitosamente')
-    
     return {
       success: true,
       message: data.message || 'Notificación enviada correctamente',
@@ -76,8 +69,6 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     */
     
     // MOCK: Simular respuesta exitosa mientras el endpoint se define
-    console.log('⚠️ [sendNotification] Usando respuesta simulada - Endpoint por definir')
-    
     await new Promise(resolve => setTimeout(resolve, 1500)) // Simular latencia de red
     
     return {
