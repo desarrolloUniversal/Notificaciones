@@ -33,10 +33,18 @@ function App() {
   } = useAuthStore()
 
   const {
-    pendingNotifications,
+    getPendingNotifications,
     addPendingNotification,
-    removePendingNotification
+    removePendingNotification,
+    setCurrentUser
   } = usePendingNotificationsStore()
+
+  // Sincronizar usuario actual con el store de notificaciones pendientes
+  useEffect(() => {
+    setCurrentUser(isAuthenticated ? username : null)
+  }, [isAuthenticated, username, setCurrentUser])
+
+  const pendingNotifications = getPendingNotifications()
 
   const [urlInput, setUrlInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
