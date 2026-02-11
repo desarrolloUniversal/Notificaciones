@@ -33,6 +33,7 @@ function App() {
   const [isLoadingNewNotification, setIsLoadingNewNotification] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false)
   const [pendingNotifications, setPendingNotifications] = useState<Array<{
     id: string;
     url: string;
@@ -45,8 +46,19 @@ function App() {
     fetchNotifications()
   }, [fetchNotifications])
 
-  const handleRefresh = () => {
-    fetchNotifications(true)
+  const handleRefresh = async () => {
+    try {
+      await fetchNotifications(true)
+      // Mostrar alerta de éxito
+      setShowSuccessAlert(true)
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        setShowSuccessAlert(false)
+      }, 3000)
+    } catch (error) {
+      // El error ya se maneja en el store
+      console.error('Error al actualizar:', error)
+    }
   }
 
   const handleLoginClick = () => {
@@ -309,6 +321,21 @@ function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Alerta de éxito */}
+      {showSuccessAlert && (
+        <div className="success-alert">
+          <span className="success-icon">✅</span>
+          <span className="success-message">Notificaciones actualizadas correctamente</span>
+          <button 
+            className="success-close-btn"
+            onClick={() => setShowSuccessAlert(false)}
+            title="Cerrar"
+          >
+            ✕
+          </button>
         </div>
       )}
 
