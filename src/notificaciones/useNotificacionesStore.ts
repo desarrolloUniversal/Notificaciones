@@ -26,11 +26,8 @@ interface NotificacionesState {
 
 const CACHE_TIME_DEFAULT = 5 * 60 * 1000 // 5 minutos
 
-// En desarrollo, usar el proxy de Vite para evitar CORS
-const isDevelopment = import.meta.env.DEV
-const API_URL = isDevelopment
-  ? '/api/notifications?site=eluniversal'
-  : 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificaciones?site=eluniversal'
+// URL directa del servidor de la API de notificaciones
+const API_URL = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificaciones?site=eluniversal'
 
 export const useNotificacionesStore = create<NotificacionesState>((set, get) => ({
   // Estado inicial

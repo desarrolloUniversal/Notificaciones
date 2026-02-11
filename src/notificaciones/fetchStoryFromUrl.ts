@@ -1,13 +1,8 @@
 // src/notificaciones/fetchStoryFromUrl.ts
 import type { StoryApiResponse } from './types/notificacionesTypes'
 
-// En desarrollo, usar el proxy de Vite para evitar CORS
-// En producción, usar la URL directa (debe tener CORS configurado)
-const isDevelopment = import.meta.env.DEV
-const STORIES_API_BASE_URL = isDevelopment 
-  ? '/api/stories' // Proxy local (evita CORS en desarrollo)
-  : 'https://wy1k8mgsuc.execute-api.us-east-1.amazonaws.com/stories' // URL directa en producción
-
+// URL directa del servidor de la API de stories
+const STORIES_API_BASE_URL = 'https://wy1k8mgsuc.execute-api.us-east-1.amazonaws.com/stories'
 const WEBSITE = 'eluniversal'
 
 /**
