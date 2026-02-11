@@ -8,6 +8,7 @@ import { sendNotification, canSendNotification } from './notificaciones/sendNoti
 import { validateArticleUrl, analyzeUrl } from './notificaciones/validateUrl'
 import type { PendingNotificationFromUrl } from './notificaciones/types/notificacionesTypes'
 import { useAuthStore } from './auth/useAuthStore'
+import { usePendingNotificationsStore } from './notificaciones/usePendingNotificationsStore'
 import { LoginModal } from './components/LoginModal'
 
 const getImageBySectionOrId = (thumbnail: string) => {
@@ -31,6 +32,12 @@ function App() {
     logout
   } = useAuthStore()
 
+  const {
+    pendingNotifications,
+    addPendingNotification,
+    removePendingNotification
+  } = usePendingNotificationsStore()
+
   const [urlInput, setUrlInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalUrlInput, setModalUrlInput] = useState('')
@@ -39,7 +46,6 @@ function App() {
   const [loadingError, setLoadingError] = useState<string | null>(null)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
-  const [pendingNotifications, setPendingNotifications] = useState<PendingNotificationFromUrl[]>([])
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set())
 
@@ -174,7 +180,7 @@ function App() {
       await new Promise(resolve => setTimeout(resolve, 200))
       
       // Agregar a notificaciones pendientes
-      setPendingNotifications(prev => [notification, ...prev])
+      addPendingNotification(notification)
       
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -197,7 +203,7 @@ function App() {
   }
 
   const handleRemovePending = (id: string) => {
-    setPendingNotifications(prev => prev.filter(pending => pending.id !== id))
+    removePendingNotification(id)
   }
 
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
@@ -230,7 +236,7 @@ function App() {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // Remover de pendientes después de envío exitoso
-      setPendingNotifications(prev => prev.filter(p => p.id !== pending.id))
+      removePendingNotification(pending.id)
       
       alert(`✅ Notificación "${pending.titulo}" enviada correctamente.\n\n${result.message}`)
       
