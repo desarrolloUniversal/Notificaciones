@@ -12,16 +12,15 @@ interface PendingNotificationsState {
   setCurrentUser: (username: string | null) => void
   addPendingNotification: (notification: PendingNotificationFromUrl) => void
   removePendingNotification: (id: string) => void
-  clearPendingNotifications: () => void
-  clearAllUsersPendingNotifications: () => void
-  getPendingNotification: (id: string) => PendingNotificationFromUrl | undefined
-  getPendingCount: () => number
+  clearCurrentUserNotifications: () => void
+  clearAllNotifications: () => void
   getPendingNotifications: () => PendingNotificationFromUrl[]
-  removeOldPendingNotifications: (maxAgeMs?: number) => void
+  getPendingCount: () => number
+  removeOldNotifications: (maxAgeMs?: number) => void
 }
 
-// Tiempo máximo de vida para notificaciones pendientes (por defecto 7 días)
-const DEFAULT_MAX_AGE = 7 * 24 * 60 * 60 * 1000 // 7 días en milisegundos
+// Tiempo máximo de vida para notificaciones pendientes (7 días)
+const DEFAULT_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
 export const usePendingNotificationsStore = create<PendingNotificationsState>()(
   persist(
@@ -30,24 +29,21 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
       pendingNotificationsByUser: {},
       currentUser: null,
 
-      // Establecer usuario actual
+      // Establecer usuario actual (se sincroniza con el login)
       setCurrentUser: (username) => {
         set({ currentUser: username })
         if (username) {
-          console.log(`👤 [PendingStore] Usuario cambiado a: ${username}`)
-          // Limpiar notificaciones antiguas del usuario actual
-          get().removeOldPendingNotifications()
-        } else {
-          console.log('👤 [PendingStore] Usuario cerró sesión')
+          // Limpiar notificaciones antiguas al cambiar de usuario
+          get().removeOldNotifications()
         }
       },
 
-      // Agregar nueva notificación pendiente para el usuario actual
+      // Agregar notificación pendiente al usuario actual
       addPendingNotification: (notification) => {
         const { currentUser, pendingNotificationsByUser } = get()
         
         if (!currentUser) {
-          console.warn('⚠️ [PendingStore] No hay usuario autenticado, no se puede agregar notificación')
+          console.warn('⚠️ [PendingStore] No hay usuario autenticado')
           return
         }
 
@@ -59,18 +55,13 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
             [currentUser]: [notification, ...userNotifications],
           }
         })
-        
-        console.log(`✅ [PendingStore] Notificación agregada para ${currentUser}:`, notification.id)
       },
 
-      // Eliminar notificación pendiente por ID del usuario actual
+      // Eliminar notificación pendiente del usuario actual
       removePendingNotification: (id) => {
         const { currentUser, pendingNotificationsByUser } = get()
         
-        if (!currentUser) {
-          console.warn('⚠️ [PendingStore] No hay usuario autenticado')
-          return
-        }
+        if (!currentUser) return
 
         const userNotifications = pendingNotificationsByUser[currentUser] || []
         
@@ -80,18 +71,13 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
             [currentUser]: userNotifications.filter((n) => n.id !== id),
           }
         })
-        
-        console.log(`🗑️ [PendingStore] Notificación eliminada para ${currentUser}:`, id)
       },
 
-      // Limpiar todas las notificaciones pendientes del usuario actual
-      clearPendingNotifications: () => {
+      // Limpiar notificaciones del usuario actual
+      clearCurrentUserNotifications: () => {
         const { currentUser, pendingNotificationsByUser } = get()
         
-        if (!currentUser) {
-          console.warn('⚠️ [PendingStore] No hay usuario autenticado')
-          return
-        }
+        if (!currentUser) return
 
         set({
           pendingNotificationsByUser: {
@@ -99,37 +85,14 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
             [currentUser]: [],
           }
         })
-        
-        console.log(`🧹 [PendingStore] Notificaciones pendientes eliminadas para ${currentUser}`)
       },
 
-      // Limpiar notificaciones de todos los usuarios (admin)
-      clearAllUsersPendingNotifications: () => {
+      // Limpiar todas las notificaciones de todos los usuarios
+      clearAllNotifications: () => {
         set({ pendingNotificationsByUser: {} })
-        console.log('🧹 [PendingStore] Todas las notificaciones de todos los usuarios eliminadas')
       },
 
-      // Obtener notificación pendiente por ID del usuario actual
-      getPendingNotification: (id) => {
-        const { currentUser, pendingNotificationsByUser } = get()
-        
-        if (!currentUser) return undefined
-        
-        const userNotifications = pendingNotificationsByUser[currentUser] || []
-        return userNotifications.find((n) => n.id === id)
-      },
-
-      // Obtener cantidad de notificaciones pendientes del usuario actual
-      getPendingCount: () => {
-        const { currentUser, pendingNotificationsByUser } = get()
-        
-        if (!currentUser) return 0
-        
-        const userNotifications = pendingNotificationsByUser[currentUser] || []
-        return userNotifications.length
-      },
-
-      // Obtener todas las notificaciones pendientes del usuario actual
+      // Obtener notificaciones del usuario actual
       getPendingNotifications: () => {
         const { currentUser, pendingNotificationsByUser } = get()
         
@@ -138,8 +101,13 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
         return pendingNotificationsByUser[currentUser] || []
       },
 
-      // Eliminar notificaciones pendientes antiguas del usuario actual
-      removeOldPendingNotifications: (maxAgeMs = DEFAULT_MAX_AGE) => {
+      // Obtener cantidad de notificaciones del usuario actual
+      getPendingCount: () => {
+        return get().getPendingNotifications().length
+      },
+
+      // Eliminar notificaciones antiguas del usuario actual
+      removeOldNotifications: (maxAgeMs = DEFAULT_MAX_AGE) => {
         const { currentUser, pendingNotificationsByUser } = get()
         
         if (!currentUser) return
@@ -161,7 +129,6 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
               [currentUser]: filtered,
             }
           })
-          console.log(`🧹 [PendingStore] ${removedCount} notificaciones antiguas eliminadas para ${currentUser}`)
         }
       },
     }),
@@ -169,7 +136,7 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
       name: 'pending-notifications-storage',
       storage: createJSONStorage(() => localStorage),
       
-      // Persistir estado por usuario
+      // Persistir estado completo
       partialize: (state) => ({
         pendingNotificationsByUser: state.pendingNotificationsByUser,
         currentUser: state.currentUser,
@@ -182,20 +149,13 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
         const { currentUser, pendingNotificationsByUser } = state
         
         if (currentUser && pendingNotificationsByUser[currentUser]) {
-          const count = pendingNotificationsByUser[currentUser].length
-          console.log(`✅ [PendingStore] ${count} notificaciones pendientes restauradas para ${currentUser}`)
-          
-          // Limpiar notificaciones antiguas automáticamente
-          state.removeOldPendingNotifications()
-        } else if (currentUser) {
-          console.log(`📭 [PendingStore] No hay notificaciones pendientes para ${currentUser}`)
-        } else {
-          console.log('📭 [PendingStore] No hay sesión activa')
+          // Limpiar notificaciones antiguas
+          state.removeOldNotifications()
         }
       },
 
       // Versión del schema
-      version: 2, // Incrementada por cambio de estructura
+      version: 2,
     }
   )
 )
