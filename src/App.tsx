@@ -234,19 +234,21 @@ function App() {
       <div className="header-section">
         <h1 className="page-title">Notificaciones</h1>
         <div className="controls-group">
-          <div className="url-input-container">
-            <span className="url-icon">🌐</span>
-            <input
-              type="text"
-              className="url-input"
-              placeholder="Ingrese la URL"
-              value={urlInput}
-              onChange={handleUrlChange}
-              onClick={handleInputClick}
-              disabled={loading}
-              readOnly
-            />
-          </div>
+          {isAuthenticated && (
+            <div className="url-input-container">
+              <span className="url-icon">🌐</span>
+              <input
+                type="text"
+                className="url-input"
+                placeholder="Ingrese la URL"
+                value={urlInput}
+                onChange={handleUrlChange}
+                onClick={handleInputClick}
+                disabled={loading}
+                readOnly
+              />
+            </div>
+          )}
           <button 
             className="refresh-btn" 
             onClick={handleRefresh}
