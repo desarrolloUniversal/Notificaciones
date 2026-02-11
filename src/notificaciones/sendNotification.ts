@@ -2,7 +2,7 @@
 import type { NotificationSendPayload, PendingNotificationFromUrl } from './types/notificacionesTypes'
 
 // TODO: Definir el endpoint real cuando esté disponible
-const SEND_NOTIFICATION_ENDPOINT = 'https://api.eluniversal.com.mx/notifications/send' // PLACEHOLDER
+// const SEND_NOTIFICATION_ENDPOINT = 'https://api.eluniversal.com.mx/notifications/send' // PLACEHOLDER
 
 /**
  * Prepara el payload para enviar una notificación
