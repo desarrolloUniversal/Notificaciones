@@ -1,0 +1,242 @@
+export const parseNotaA = (rawJson: any): NotaFormateada => {
+  try {
+    // 1) Extraer título y subtítulo con validación y manejo seguro
+    let titulo = '';
+    let subtitulo = '';
+    
+    // Headers pueden venir como string JSON o como objeto ya parseado
+    if (rawJson.headlines_basic) {
+      if (typeof rawJson.headlines_basic === 'string') {
+        try {
+          titulo = JSON.parse(rawJson.headlines_basic);
+        } catch (error) {
+          titulo = rawJson.headlines_basic;
+        }
+      } else {
+        titulo = rawJson.headlines_basic;
+      }
+    }
+    
+    if (rawJson.subheadlines_basic) {
+      if (typeof rawJson.subheadlines_basic === 'string') {
+        try {
+          subtitulo = JSON.parse(rawJson.subheadlines_basic);
+        } catch (error) {
+          subtitulo = rawJson.subheadlines_basic;
+        }
+      } else {
+        subtitulo = rawJson.subheadlines_basic;
+      }
+    }
+
+    const id = rawJson.idarticulo;
+
+    // 2) Formatear fecha en zona CDMX
+    const fechaRaw = rawJson.display_date || rawJson.publish_date || rawJson.created_date;
+    const fecha = parseFecha(fechaRaw);
+
+    // 3) Imagen principal y pie de foto con validación y manejo seguro
+    let promoItems: any = {};
+    if (rawJson.promo_items) {
+      if (typeof rawJson.promo_items === 'string') {
+        try {
+          promoItems = JSON.parse(rawJson.promo_items);
+        } catch (error) {
+          promoItems = {};
+        }
+      } else {
+        promoItems = rawJson.promo_items;
+      }
+    }
+    const resizeUrl = promoItems?.basic?.additional_properties?.fullSizeResizeUrl || '';
+    const imagenPrincipal = `https://www.eluniversal.com.mx${resizeUrl}`;
+    const pieDeFoto = promoItems?.basic?.caption || '';
+   
+    // 4) Autores con validación y manejo seguro
+    let credits: any = {};
+    if (rawJson.credits) {
+      if (typeof rawJson.credits === 'string') {
+        try {
+          credits = JSON.parse(rawJson.credits);
+        } catch (error) {
+          credits = {};
+        }
+      } else {
+        credits = rawJson.credits;
+      }
+    }
+    const autoresList: Autor[] = parseAutores(credits);
+
+    // 5) Aplanar content_elements con manejo seguro, tratando los anidados de tipo "story" como referencias
+    let rawBlocks: any[] = [];
+    if (rawJson.content_elements) {
+      if (typeof rawJson.content_elements === 'string') {
+        try {
+          rawBlocks = JSON.parse(rawJson.content_elements);
+        } catch (error) {
+          rawBlocks = [];
+        }
+      } else if (Array.isArray(rawJson.content_elements)) {
+        rawBlocks = rawJson.content_elements;
+      }
+    }
+    
+    // Agregar el contenido embed si existe
+    const embedContent = promoItems?.embed?.content;
+    if (embedContent) {
+      rawBlocks.unshift({
+        type: 'raw_html',
+        content: embedContent
+      });
+    }
+    
+    const allBlocks = rawBlocks.flatMap((el: any) => {
+      // Si es un bloque story anidado, devolvemos sólo la referencia
+      if (el.type === 'story' && Array.isArray(el.content_elements)) {
+        return [{
+          type: 'reference',
+          referent: { id: el._id, type: 'story' }
+        }];
+      }
+      // Si tiene sub-elementos, los aplanamos
+      if (Array.isArray(el.content_elements)) {
+        return el.content_elements;
+      }
+      // En otro caso, devolvemos el bloque tal cual
+      return el;
+    });
+
+    // 6) Traducir a BloqueNota
+    const contenido: BloqueNota[] = allBlocks.reduce((acc: BloqueNota[], element: any) => {
+      switch (element.type) {
+      case 'text':
+        if (/Lee también/i.test(element.content)) {
+          acc.push({ tipo: 'leetambien', contenido: element.content });
+        } else {
+          acc.push({ tipo: 'texto', contenido: element.content });
+        }
+        break;
+
+      case 'image':
+        let imageUrl = '';
+        try {
+          imageUrl = element.url
+            ? element.url
+            : (element.additional_properties && element.additional_properties.resizeUrl)
+              ? `https://www.eluniversal.com.mx${element.additional_properties.resizeUrl}&smart=true`
+              : '';
+        } catch (error) {
+          console.error('🖼️ [parseNotaA] Error processing image URL:', error);
+          imageUrl = '';
+        }
+        
+        const caption = element.caption || '';
+        if (imageUrl) {
+          acc.push({ tipo: 'imagen', url: imageUrl, caption });
+        }
+        break;
+
+      case 'list':
+        const items = element.items?.map((i: any) => i.content) || [];
+        acc.push({ tipo: 'lista', items });
+        break;
+
+      case 'oembed_response':
+        acc.push({ tipo: 'oembed', contenido: element.raw_oembed.html });
+        break;
+
+      case 'raw_html':
+        acc.push({ tipo: 'html', contenido: element.content });
+        break;
+      case 'header':
+        acc.push({ tipo: 'header', contenido: element.content });
+        break;
+
+      case 'reference':
+        if (element.referent?.type === 'story') {
+          acc.push({ tipo: 'referencia', contenido: element.referent.id });
+        }
+        break;
+
+      default:
+        // otros tipos se ignoran
+        break;
+    }
+    return acc;
+  }, []);
+
+  // 7) Restricción de contenido con manejo seguro de JSON (acepta objeto o string)
+  let contentRestrictions: any = {};
+  if (rawJson.content_restrictions) {
+    if (typeof rawJson.content_restrictions === 'string') {
+      try {
+        contentRestrictions = JSON.parse(rawJson.content_restrictions);
+      } catch (error) {
+        contentRestrictions = {};
+      }
+    } else {
+      contentRestrictions = rawJson.content_restrictions;
+    }
+  }
+  const restrictionCode = contentRestrictions?.content_code?.toLowerCase() || '';
+  const contentRestriction: 'libre' | 'restringido' =
+    restrictionCode === 'libre' ? 'libre' : 'restringido';
+
+  // 8) Nombre de Columna de Opinión y sección con validación y manejo seguro
+  let taxonomy: any = {};
+  if (rawJson.taxonomy) {
+    if (typeof rawJson.taxonomy === 'string') {
+      try {
+        taxonomy = JSON.parse(rawJson.taxonomy);
+      } catch (error) {
+        taxonomy = {};
+      }
+    } else {
+      taxonomy = rawJson.taxonomy;
+    }
+  }
+  const section = taxonomy?.primary_section?.name || undefined;
+  const opinionColumna = taxonomy?.primary_section?.additional_properties?.original?.site?.site_about || '';
+  
+  // Fallback para section usando primary_section_path
+  let finalSection = section;
+  if (!finalSection && rawJson.primary_section_path) {
+    const pathToName: { [key: string]: string } = {
+      '/nacion': 'Nación',
+      '/deportes': 'Deportes',
+      '/estados': 'Estados',
+      '/mundo': 'Mundo',
+      '/opinion': 'Opinión',
+      '/cultura': 'Cultura',
+      '/cartera': 'Cartera',
+      '/techbit': 'Techbit',
+      '/espectaculos': 'Espectáculos',
+    };
+    finalSection = pathToName[rawJson.primary_section_path] || undefined;
+  }
+
+  // 9) URL canónica de la nota
+  const baseUrl = 'https://www.eluniversal.com.mx';
+  const canonicalUrl = rawJson.canonical_url || '';
+  const url = canonicalUrl ? `${baseUrl}${canonicalUrl}` : '';
+
+  return {
+    id,
+    titulo,
+    subtitulo,
+    imagenPrincipal,
+    fecha,
+    fechaRaw,
+    contenido,
+    contentRestriction,
+    pieDeFoto,
+    autoresList,
+    section: finalSection,
+    opinionColumna,
+    url,
+  };
+  
+  } catch (error) {
+    throw error;
+  }
+};

@@ -2,6 +2,11 @@ import './App.css'
 import elUniversalLogo from './assets/images/el_universal.png'
 import { useEffect, useState } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
+import { fetchStoryFromUrl } from './notificaciones/fetchStoryFromUrl'
+import { parseStoryToNotification } from './notificaciones/parseStoryToNotification'
+import { sendNotification, canSendNotification } from './notificaciones/sendNotification'
+import { validateArticleUrl, analyzeUrl } from './notificaciones/validateUrl'
+import type { PendingNotificationFromUrl } from './notificaciones/types/notificacionesTypes'
 
 const getImageBySectionOrId = (thumbnail: string) => {
     if (thumbnail && thumbnail.startsWith('http')) {
@@ -24,12 +29,8 @@ function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isLoadingNewNotification, setIsLoadingNewNotification] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
-  const [pendingNotifications, setPendingNotifications] = useState<Array<{
-    id: string;
-    url: string;
-    timestamp: string;
-    notification: typeof notifications[0];
-  }>>([])
+  const [loadingError, setLoadingError] = useState<string | null>(null)
+  const [pendingNotifications, setPendingNotifications] = useState<PendingNotificationFromUrl[]>([])
 
   useEffect(() => {
     fetchNotifications()
@@ -56,57 +57,135 @@ function App() {
     setModalUrlInput(e.target.value)
   }
 
-  const handleApplyUrl = () => {
-    setUrlInput(modalUrlInput)
-    setIsModalOpen(false)
+  const handleApplyUrl = async () => {
+    const url = modalUrlInput.trim()
     
-    // Iniciar simulación de carga
+    // Validación básica
+    if (!url) {
+      alert('❌ Por favor ingresa una URL')
+      return
+    }
+    
+    // Validar formato de URL
+    const validation = validateArticleUrl(url)
+    if (!validation.valid) {
+      alert(`❌ URL inválida\n\n${validation.message}`)
+      return
+    }
+    
+    // Analizar URL
+    const analysis = analyzeUrl(url)
+    console.log('🔍 [handleApplyUrl] Análisis de URL:', analysis)
+    
+    if (!analysis.isValid) {
+      alert(`❌ Error al analizar URL\n\n${analysis.error}`)
+      return
+    }
+    
+    setUrlInput(url)
+    setIsModalOpen(false)
     setIsLoadingNewNotification(true)
     setLoadingProgress(0)
+    setLoadingError(null)
     
-    // Simular progreso de carga
-    const progressInterval = setInterval(() => {
-      setLoadingProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval)
-          setTimeout(() => {
-            setIsLoadingNewNotification(false)
-            fetchNotifications(true)
-          }, 500)
-          return 100
-        }
-        return prev + 10
+    console.log('\n🚀 [handleApplyUrl] Iniciando carga de notificación')
+    console.log('📋 URL original:', url)
+    console.log('📍 Pathname:', analysis.pathname)
+    console.log('🏷️ Sección:', analysis.section)
+    
+    try {
+      // Progreso: 0-30% - Conectando
+      setLoadingProgress(10)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setLoadingProgress(30)
+      
+      console.log('\n📡 [handleApplyUrl] Llamando a API de stories...')
+      
+      // Progreso: 30-70% - Obteniendo datos
+      const storyData = await fetchStoryFromUrl(url)
+      
+      console.log('✅ [handleApplyUrl] Respuesta recibida:', {
+        id: storyData.idarticulo,
+        hasHeadline: !!storyData.headlines_basic,
+        hasPromo: !!storyData.promo_items,
+        section: storyData.primary_section_path
       })
-    }, 300)
+      
+      setLoadingProgress(50)
+      await new Promise(resolve => setTimeout(resolve, 200))
+      setLoadingProgress(70)
+      
+      // Progreso: 70-100% - Procesando información
+      console.log('\n🔄 [handleApplyUrl] Parseando story a notificación...')
+      const notification = parseStoryToNotification(storyData, url)
+      
+      console.log('✅ [handleApplyUrl] Notificación creada:', {
+        id: notification.id,
+        titulo: notification.titulo.substring(0, 50) + '...',
+        seccion: notification.seccion,
+        thumbnail: notification.thumbnail ? 'Sí' : 'No'
+      })
+      
+      setLoadingProgress(90)
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Agregar a notificaciones pendientes
+      setPendingNotifications(prev => [notification, ...prev])
+      
+      setLoadingProgress(100)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      console.log('\n✨ [handleApplyUrl] ¡Notificación agregada a pendientes exitosamente!')
+      console.log('📊 Total de pendientes:', pendingNotifications.length + 1)
+    } catch (error) {
+      console.error('\n❌ [handleApplyUrl] ERROR al procesar URL:', error)
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A')
+      
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido al obtener artículo'
+      setLoadingError(errorMessage)
+      
+      // Mantener el error visible por más tiempo
+      await new Promise(resolve => setTimeout(resolve, 4000))
+    } finally {
+      setIsLoadingNewNotification(false)
+      setLoadingProgress(0)
+    }
   }
 
   const handleDiscard = () => {
     setIsConfirmModalOpen(true)
   }
 
-  const handleConfirmDiscard = () => {
-    // Guardar notificación como pendiente
-    if (modalUrlInput.trim()) {
-      const pendingNotification = {
-        id: Date.now().toString(),
-        url: modalUrlInput,
-        timestamp: new Date().toISOString(),
-        notification: {
+  const handleConfirmDiscard = async () => {
+    // Guardar notificación como pendiente desde la API
+    const url = modalUrlInput.trim()
+    
+    if (url) {
+      try {
+        console.log('🔄 Descartando pero guardando en pendientes:', url)
+        const storyData = await fetchStoryFromUrl(url)
+        const notification = parseStoryToNotification(storyData, url)
+        setPendingNotifications(prev => [notification, ...prev])
+        console.log('✅ Notificación guardada en pendientes')
+      } catch (error) {
+        console.error('❌ Error al guardar notificación pendiente:', error)
+        // Fallback: crear notificación básica si falla la API
+        const fallbackNotification: PendingNotificationFromUrl = {
           id: Date.now().toString(),
           thumbnail: '',
-          seccion: 'Personalizada',
-          titulo: `Notificación desde: ${modalUrlInput}`,
-          subtitulo: 'URL descartada - Pendiente de aplicar',
-          fechaEnvio: new Date().toISOString().replace('T', ' ').split('.')[0],
+          seccion: 'Desconocida',
+          titulo: `Notificación desde: ${url}`,
+          subtitulo: 'Error al obtener datos - Pendiente',
+          url: url,
           estadoEnvio: 'Pendiente',
-          totalEnvios: 0,
-          leidos: 0,
-          totalLeidos: 0,
-          usuarios: 'Sin definir'
+          fechaEnvio: null,
+          usuarios: 'Sistema',
+          timestamp: new Date().toISOString()
         }
+        setPendingNotifications(prev => [fallbackNotification, ...prev])
       }
-      setPendingNotifications(prev => [pendingNotification, ...prev])
     }
+    
     setModalUrlInput('')
     setIsModalOpen(false)
     setIsConfirmModalOpen(false)
@@ -120,31 +199,52 @@ function App() {
     setPendingNotifications(prev => prev.filter(pending => pending.id !== id))
   }
 
-  const handleApplyPending = (pending: typeof pendingNotifications[0]) => {
-    // Aplicar la URL pendiente
+  const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
+    // Validar que la notificación pueda ser enviada
+    if (!canSendNotification(pending)) {
+      alert('❌ La notificación no puede ser enviada. Verifica que tenga todos los datos necesarios.')
+      return
+    }
+    
+    console.log('📤 Iniciando envío de notificación pendiente:', pending)
+    
     setUrlInput(pending.url)
-    
-    // Remover de pendientes
-    setPendingNotifications(prev => prev.filter(p => p.id !== pending.id))
-    
-    // Iniciar simulación de carga
     setIsLoadingNewNotification(true)
     setLoadingProgress(0)
+    setLoadingError(null)
     
-    // Simular progreso de carga
-    const progressInterval = setInterval(() => {
-      setLoadingProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval)
-          setTimeout(() => {
-            setIsLoadingNewNotification(false)
-            fetchNotifications(true)
-          }, 500)
-          return 100
-        }
-        return prev + 10
-      })
-    }, 300)
+    try {
+      setLoadingProgress(30)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // Llamar al endpoint de envío
+      const result = await sendNotification(pending)
+      
+      setLoadingProgress(70)
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      console.log('✅ Notificación enviada exitosamente:', result)
+      
+      setLoadingProgress(100)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Remover de pendientes después de envío exitoso
+      setPendingNotifications(prev => prev.filter(p => p.id !== pending.id))
+      
+      alert(`✅ Notificación "${pending.titulo}" enviada correctamente.\n\n${result.message}`)
+      
+      // Refrescar lista de notificaciones
+      fetchNotifications(true)
+    } catch (error) {
+      console.error('❌ Error al enviar notificación:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      setLoadingError(errorMessage)
+      alert(`❌ Error al enviar notificación:\n\n${errorMessage}`)
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    } finally {
+      setIsLoadingNewNotification(false)
+      setLoadingProgress(0)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -311,21 +411,21 @@ function App() {
                   <tr key={pending.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
                     <td>
                       <img 
-                        src={getImageBySectionOrId(pending.notification.thumbnail)} 
-                        alt={pending.notification.titulo}
+                        src={getImageBySectionOrId(pending.thumbnail)} 
+                        alt={pending.titulo}
                         className="thumbnail"
                       />
                     </td>
-                    <td>{pending.notification.seccion}</td>
-                    <td className="title-cell">{pending.notification.titulo}</td>
-                    <td>{formatDate(pending.notification.fechaEnvio)}</td>
+                    <td>{pending.seccion}</td>
+                    <td className="title-cell">{pending.titulo}</td>
+                    <td>{pending.fechaEnvio || 'Sin definir'}</td>
                     <td>
                       <span className="status-badge status-pending-orange">
-                        ⏳ {pending.notification.estadoEnvio}
+                        ⏳ {pending.estadoEnvio}
                       </span>
                     </td>
-                    <td className="number-cell">{pending.notification.totalEnvios.toLocaleString()}</td>
-                    <td>{pending.notification.usuarios}</td>
+                    <td className="number-cell">0</td>
+                    <td>{pending.usuarios}</td>
                     <td className="actions-cell">
                       <button 
                         className="apply-btn"
@@ -354,23 +454,36 @@ function App() {
       {isLoadingNewNotification && (
         <div className="loading-notification-card">
           <div className="loading-card-content">
-            <div className="loading-card-icon">🔄</div>
+            <div className="loading-card-icon">{loadingError ? '❌' : '🔄'}</div>
             <div className="loading-card-info">
-              <div className="loading-card-title">Cargando nueva notificación desde URL personalizada...</div>
-              <div className="loading-progress-bar">
-                <div 
-                  className="loading-progress-fill" 
-                  style={{ width: `${loadingProgress}%` }}
-                >
-                  <span className="loading-progress-text">{loadingProgress}%</span>
+              <div className="loading-card-title">
+                {loadingError 
+                  ? 'Error al cargar notificación' 
+                  : 'Cargando nueva notificación desde URL personalizada...'}
+              </div>
+              {!loadingError && (
+                <>
+                  <div className="loading-progress-bar">
+                    <div 
+                      className="loading-progress-fill" 
+                      style={{ width: `${loadingProgress}%` }}
+                    >
+                      <span className="loading-progress-text">{loadingProgress}%</span>
+                    </div>
+                  </div>
+                  <div className="loading-card-status">
+                    {loadingProgress < 30 && '⏳ Conectando con el servidor...'}
+                    {loadingProgress >= 30 && loadingProgress < 70 && '📥 Obteniendo datos...'}
+                    {loadingProgress >= 70 && loadingProgress < 100 && '✅ Procesando información...'}
+                    {loadingProgress === 100 && '✨ ¡Completado!'}
+                  </div>
+                </>
+              )}
+              {loadingError && (
+                <div className="error-banner" style={{ marginTop: '10px' }}>
+                  {loadingError}
                 </div>
-              </div>
-              <div className="loading-card-status">
-                {loadingProgress < 30 && '⏳ Conectando con el servidor...'}
-                {loadingProgress >= 30 && loadingProgress < 70 && '📥 Obteniendo datos...'}
-                {loadingProgress >= 70 && loadingProgress < 100 && '✅ Procesando información...'}
-                {loadingProgress === 100 && '✨ ¡Completado!'}
-              </div>
+              )}
             </div>
           </div>
         </div>
