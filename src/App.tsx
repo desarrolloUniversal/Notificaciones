@@ -26,7 +26,6 @@ function App() {
   const [urlInput, setUrlInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalUrlInput, setModalUrlInput] = useState('')
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isLoadingNewNotification, setIsLoadingNewNotification] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [loadingError, setLoadingError] = useState<string | null>(null)
@@ -150,49 +149,6 @@ function App() {
       setIsLoadingNewNotification(false)
       setLoadingProgress(0)
     }
-  }
-
-  const handleDiscard = () => {
-    setIsConfirmModalOpen(true)
-  }
-
-  const handleConfirmDiscard = async () => {
-    // Guardar notificación como pendiente desde la API
-    const url = modalUrlInput.trim()
-    
-    if (url) {
-      try {
-        console.log('🔄 Descartando pero guardando en pendientes:', url)
-        const storyData = await fetchStoryFromUrl(url)
-        const notification = parseStoryToNotification(storyData, url)
-        setPendingNotifications(prev => [notification, ...prev])
-        console.log('✅ Notificación guardada en pendientes')
-      } catch (error) {
-        console.error('❌ Error al guardar notificación pendiente:', error)
-        // Fallback: crear notificación básica si falla la API
-        const fallbackNotification: PendingNotificationFromUrl = {
-          id: Date.now().toString(),
-          thumbnail: '',
-          seccion: 'Desconocida',
-          titulo: `Notificación desde: ${url}`,
-          subtitulo: 'Error al obtener datos - Pendiente',
-          url: url,
-          estadoEnvio: 'Pendiente',
-          fechaEnvio: null,
-          usuarios: 'Sistema',
-          timestamp: new Date().toISOString()
-        }
-        setPendingNotifications(prev => [fallbackNotification, ...prev])
-      }
-    }
-    
-    setModalUrlInput('')
-    setIsModalOpen(false)
-    setIsConfirmModalOpen(false)
-  }
-
-  const handleCancelDiscard = () => {
-    setIsConfirmModalOpen(false)
   }
 
   const handleRemovePending = (id: string) => {
@@ -333,30 +289,6 @@ function App() {
               <button className="modal-btn modal-btn-primary" onClick={handleApplyUrl}>
                 <span className="btn-icon">✓</span>
                 Agregar URL
-              </button>
-              <button className="modal-btn modal-btn-secondary" onClick={handleDiscard}>
-                Descartar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de confirmación al descartar */}
-      {isConfirmModalOpen && (
-        <div className="modal-overlay" onClick={handleCancelDiscard}>
-          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon">⚠️</div>
-            <h3 className="confirm-title">Descartar URL</h3>
-            <p className="confirm-message">
-              La URL quedará pendiente y no se aplicará a las notificaciones.
-            </p>
-            <div className="confirm-actions">
-              <button className="confirm-btn confirm-btn-danger" onClick={handleConfirmDiscard}>
-                Sí, descartar
-              </button>
-              <button className="confirm-btn confirm-btn-cancel" onClick={handleCancelDiscard}>
-                Cancelar
               </button>
             </div>
           </div>
