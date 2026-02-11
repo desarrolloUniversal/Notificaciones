@@ -2,6 +2,7 @@
 import { validarRespuestaAPI } from './validarRespuestaAPI'
 import { parseDataNotification } from './parseDataNotification'
 import { AuthService } from '../auth/authService'
+import { useAuthStore } from '../auth/useAuthStore'
 
 
 // Puedes cambiar entre IP o subdominio según disponibilidad del backend
@@ -15,8 +16,9 @@ const DEFAULT_PASSWORD = 'EUpd2026@@';
 
 export const fetchNotifications = async () => {
   try {
-    // Intentar obtener el token de autenticación
-    let authHeaders = AuthService.getAuthHeader();
+    // Obtener el token del store (fuera de componentes React)
+    const token = useAuthStore.getState().token;
+    let authHeaders = AuthService.getAuthHeader(token);
     
     // Si no hay token, usar credenciales por defecto
     if (!authHeaders.Authorization) {

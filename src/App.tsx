@@ -23,8 +23,7 @@ function App() {
   const { 
     isAuthenticated, 
     username, 
-    logout,
-    checkAuth 
+    logout
   } = useAuthStore()
 
   const [urlInput, setUrlInput] = useState('')
@@ -41,11 +40,7 @@ function App() {
     notification: typeof notifications[0];
   }>>([])
 
-  // Verificar autenticación al cargar
-  useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
-
+  // Cargar notificaciones al iniciar
   useEffect(() => {
     fetchNotifications()
   }, [fetchNotifications])

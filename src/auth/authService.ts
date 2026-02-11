@@ -2,12 +2,10 @@
 import type { LoginCredentials, AuthToken } from './authTypes'
 
 const AUTH_URL = 'https://asistente.eluniversal.com.mx/service/?do=ldpa'
-const TOKEN_STORAGE_KEY = 'auth_token'
-const USERNAME_STORAGE_KEY = 'auth_username'
-const EXPIRES_AT_STORAGE_KEY = 'auth_expires_at'
 
 /**
- * Servicio de autenticación que maneja login, tokens y renovación
+ * Servicio de autenticación que maneja login y renovación de tokens
+ * Nota: El almacenamiento se maneja automáticamente por Zustand persist middleware
  */
 export class AuthService {
   /**
@@ -79,11 +77,7 @@ export class AuthService {
         username: credentials.email,
       }
 
-      // Guardar token en localStorage si el usuario quiere mantener la sesión
-      if (credentials.rememberMe) {
-        this.saveToken(authToken)
-      }
-
+      // El token se guarda automáticamente por Zustand persist
       return authToken
     } catch (error) {
       console.error('❌ [Auth] Error en login:', error instanceof Error ? error.message : error)
@@ -95,61 +89,6 @@ export class AuthService {
   }
 
   /**
-   * Guarda el token en localStorage
-   */
-  static saveToken(authToken: AuthToken): void {
-    try {
-      localStorage.setItem(TOKEN_STORAGE_KEY, authToken.accessToken)
-      localStorage.setItem(USERNAME_STORAGE_KEY, authToken.username)
-      localStorage.setItem(EXPIRES_AT_STORAGE_KEY, authToken.expiresAt.toString())
-    } catch (error) {
-      console.error('❌ [Auth] Error guardando token')
-    }
-  }
-
-  /**
-   * Obtiene el token almacenado de localStorage
-   */
-  static getStoredToken(): AuthToken | null {
-    try {
-      const accessToken = localStorage.getItem(TOKEN_STORAGE_KEY)
-      const username = localStorage.getItem(USERNAME_STORAGE_KEY)
-      const expiresAt = localStorage.getItem(EXPIRES_AT_STORAGE_KEY)
-
-      if (!accessToken || !username || !expiresAt) {
-        return null
-      }
-
-      return {
-        accessToken,
-        username,
-        expiresAt: parseInt(expiresAt, 10),
-      }
-    } catch (error) {
-      console.error('❌ [Auth] Error obteniendo token')
-      return null
-    }
-  }
-
-  /**
-   * Verifica si el token ha expirado
-   */
-  static isTokenExpired(authToken: AuthToken): boolean {
-    return Date.now() >= authToken.expiresAt
-  }
-
-  /**
-   * Verifica si hay un token válido almacenado
-   */
-  static hasValidToken(): boolean {
-    const token = this.getStoredToken()
-    if (!token) {
-      return false
-    }
-    return !this.isTokenExpired(token)
-  }
-
-  /**
    * Renueva el token haciendo un nuevo login
    */
   static async renewToken(credentials: LoginCredentials): Promise<AuthToken> {
@@ -157,54 +96,15 @@ export class AuthService {
   }
 
   /**
-   * Cierra sesión eliminando el token almacenado
+   * Obtiene el header de autorización para requests HTTP
+   * @param token Token de autenticación
    */
-  static logout(): void {
-    try {
-      localStorage.removeItem(TOKEN_STORAGE_KEY)
-      localStorage.removeItem(USERNAME_STORAGE_KEY)
-      localStorage.removeItem(EXPIRES_AT_STORAGE_KEY)
-      console.log('👋 [Auth] Sesión cerrada')
-    } catch (error) {
-      console.error('❌ [Auth] Error en logout')
-    }
-  }
-
-  /**
-   * Obtiene el token actual (desde memoria o localStorage)
-   */
-  static getCurrentToken(): string | null {
-    const token = this.getStoredToken()
-    return token?.accessToken || null
-  }
-
-  /**
-   * Obtiene el header de autorización para requests
-   */
-  static getAuthHeader(): Record<string, string> {
-    const token = this.getCurrentToken()
+  static getAuthHeader(token: string | null): Record<string, string> {
     if (!token) {
       return {}
     }
     return {
       'Authorization': `Basic ${token}`,
     }
-  }
-
-  /**
-   * Obtiene el username del usuario actualmente logueado
-   * @returns El username (email) o null si no hay sesión
-   */
-  static getCurrentUser(): string | null {
-    const token = this.getStoredToken()
-    return token?.username || null
-  }
-
-  /**
-   * Verifica si hay un usuario logueado actualmente
-   * @returns true si hay un usuario autenticado
-   */
-  static isLoggedIn(): boolean {
-    return this.hasValidToken()
   }
 }
