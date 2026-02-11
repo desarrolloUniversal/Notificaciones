@@ -91,6 +91,8 @@ function App() {
 
   const handleModalClose = () => {
     setIsModalOpen(false)
+    // Limpiar modal input al cerrar sin guardar
+    setModalUrlInput('')
   }
 
   const handleModalUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,6 +121,10 @@ function App() {
         return prev + 10
       })
     }, 300)
+
+    // Limpiar campos después de aplicar
+    setModalUrlInput('')
+    setUrlInput('')
   }
 
   const handleDiscard = () => {
@@ -148,12 +154,16 @@ function App() {
       }
       setPendingNotifications(prev => [pendingNotification, ...prev])
     }
+    
+    // Limpiar campos después de descartar
     setModalUrlInput('')
+    setUrlInput('')
     setIsModalOpen(false)
     setIsConfirmModalOpen(false)
   }
 
   const handleCancelDiscard = () => {
+    // Volver al modal principal sin limpiar campos
     setIsConfirmModalOpen(false)
   }
 
@@ -495,11 +505,12 @@ function App() {
       )}
 
       {/* Modal de Inicio de Sesión */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={handleCloseLoginModal}
-        onSuccess={handleLoginSuccess}
-      />
+      {isLoginModalOpen && (
+        <LoginModal 
+          onClose={handleCloseLoginModal}
+          onSuccess={handleLoginSuccess}
+        />
+      )}
     </div>
   )
 }

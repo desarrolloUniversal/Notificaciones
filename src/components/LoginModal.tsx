@@ -3,20 +3,17 @@ import { useState } from 'react'
 import { useAuthStore } from '../auth/useAuthStore'
 
 interface LoginModalProps {
-  isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
 }
 
-export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
+export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   const { login, isLoading } = useAuthStore()
-
-  if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,10 +31,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         rememberMe,
       })
 
-      // Login exitoso
-      setEmail('')
-      setPassword('')
-      setRememberMe(false)
+      // Login exitoso - el componente se desmontará y reseteará estados
       onSuccess?.()
       onClose()
     } catch (error) {
@@ -46,9 +40,6 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   }
 
   const handleClose = () => {
-    setEmail('')
-    setPassword('')
-    setErrorMessage('')
     onClose()
   }
 
@@ -87,7 +78,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                autoComplete="username"
+                autoComplete="off"
               />
             </div>
 
@@ -100,7 +91,7 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
             </div>
 
