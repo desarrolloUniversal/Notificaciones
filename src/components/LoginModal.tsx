@@ -8,7 +8,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -19,14 +19,20 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
     e.preventDefault()
     setErrorMessage('')
 
-    if (!email.trim() || !password.trim()) {
-      setErrorMessage('Por favor ingrese correo y contraseña')
+    if (!username.trim() || !password.trim()) {
+      setErrorMessage('Por favor ingrese usuario y contraseña')
+      return
+    }
+
+    // Validar que NO sea un correo electrónico
+    if (username.includes('@')) {
+      setErrorMessage('Debe ingresar un usuario, no un correo electrónico')
       return
     }
 
     try {
       await login({
-        email: email.trim(),
+        username: username.trim(),
         password: password.trim(),
         rememberMe,
       })
@@ -70,15 +76,15 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
             )}
 
             <div className="login-form-group">
-              <label className="login-form-label">Correo Electrónico:</label>
+              <label className="login-form-label">Usuario:</label>
               <input
                 type="text"
                 className="login-form-input"
-                placeholder=""
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Ingrese su usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
-                autoComplete="off"
+                autoComplete="username"
               />
             </div>
 

@@ -15,7 +15,7 @@ export class AuthService {
     try {
       // Intentar primero con JSON
       const body = {
-        usuario: credentials.email,
+        usuario: credentials.username,
         pass: credentials.password
       }
       
@@ -57,14 +57,14 @@ export class AuthService {
       }
 
       // Crear token basado en las credenciales validadas
-      const basicAuth = btoa(`${credentials.email}:${credentials.password}`)
+      const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
       const expiresIn = 3600 // 1 hora en segundos
       const expiresAt = Date.now() + (expiresIn * 1000)
 
       const authToken: AuthToken = {
         accessToken: basicAuth,
         expiresAt,
-        username: credentials.email,
+        username: credentials.username,
       }
 
       // El token se guarda automáticamente por Zustand persist
