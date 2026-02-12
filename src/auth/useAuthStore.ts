@@ -150,7 +150,6 @@ export const useAuthStore = create<AuthState>()(
 
         // Verificar si el token ha expirado
         if (state.expiresAt && Date.now() >= state.expiresAt) {
-          console.warn('🔒 [Auth] Token expirado al cargar, cerrando sesión')
           // Limpiar estado y storage
           state.token = null
           state.username = null
