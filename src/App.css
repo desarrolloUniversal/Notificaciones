@@ -1389,3 +1389,348 @@
     width: 100%;
   }
 }
+
+/* =================================
+   FILTRO DE FECHAS - Rango personalizado
+   ================================= */
+
+/* Botón "Rango personalizado..." en el modal de fecha */
+.filter-custom-range-btn {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.filter-custom-range-btn:hover {
+  background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.filter-custom-range-btn:active {
+  transform: translateY(0);
+}
+
+/* Modal de rango personalizado */
+.custom-range-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 380px;
+  max-height: 90vh;
+  min-height: 540px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.custom-range-body {
+  padding: 1.8rem 1.8rem 1.5rem 1.8rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Grupos de inputs de fecha */
+.date-input-group {
+  margin-bottom: 1.2rem;
+}
+
+.date-input-group:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.date-input-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.4rem;
+}
+
+/* Mensaje de error de fecha */
+.date-error-message {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+  border-left: 4px solid #e74c3c;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c0392b;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  animation: errorShake 0.4s ease;
+}
+
+.date-error-message svg {
+  flex-shrink: 0;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.date-input {
+  flex: 1;
+  padding: 0.5rem 0.8rem;
+  border: 2px solid #d4af37;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: 'Segoe UI', sans-serif;
+  background: #ffffff;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: text;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  background: #fafafa;
+}
+
+.date-input.error {
+  border-color: #e74c3c;
+  background: #fff5f5;
+}
+
+.date-input.error:focus {
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+}
+
+.date-input:disabled {
+  background: #e8e8e8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Botón del icono de calendario */
+.calendar-icon-btn {
+  padding: 0.4rem;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+}
+
+.calendar-icon-btn:hover {
+  background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+}
+
+.calendar-icon-btn:active {
+  transform: translateY(0);
+}
+
+/* Calendario mini flotante */
+.mini-calendar {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  background: #ffffff;
+  border: 2px solid #d4af37;
+  border-radius: 10px;
+  padding: 0.8rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: calendarFadeIn 0.2s ease-out;
+  width: 100%;
+  max-width: 260px;
+  box-sizing: border-box;
+}
+
+@keyframes calendarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header del calendario */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.calendar-month-year {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.calendar-nav-btn {
+  background: #3498db;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.calendar-nav-btn:hover {
+  background: #2980b9;
+  transform: scale(1.08);
+}
+
+.calendar-nav-btn:active {
+  transform: scale(0.95);
+}
+
+/* Días de la semana */
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.15rem;
+  margin-bottom: 0.3rem;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: #7f8c8d;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Grid de días */
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.15rem;
+  width: 100%;
+}
+
+/* Días individuales */
+.calendar-day,
+.calendar-day-empty {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  min-height: 0;
+  padding: 0;
+}
+
+.calendar-day {
+  background: #f8f9fa;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.calendar-day:hover {
+  background: #e3f2fd;
+  border-color: #3498db;
+  transform: scale(1.03);
+}
+
+.calendar-day-empty {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.calendar-day-today {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
+  border-color: #f39c12;
+  font-weight: 700;
+}
+
+.calendar-day-selected {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+}
+
+/* Responsive para rango personalizado */
+@media (max-width: 768px) {
+  .custom-range-modal {
+    max-width: 95%;
+    min-height: 420px;
+  }
+  
+  .custom-range-body {
+    padding: 1.2rem;
+  }
+  
+  .mini-calendar {
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+  
+  .calendar-day,
+  .calendar-day-empty {
+    font-size: 0.65rem;
+  }
+  
+  .calendar-weekday {
+    font-size: 0.5rem;
+  }
+  
+  .calendar-month-year {
+    font-size: 0.75rem;
+  }
+  
+  .calendar-nav-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.9rem;
+  }
+}
