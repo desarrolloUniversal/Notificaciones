@@ -32,7 +32,6 @@ export const fetchNotifications = async () => {
       method: 'GET',
       headers: {
         ...authHeaders,
-        'Content-Type': 'application/json',
       },
     });
 

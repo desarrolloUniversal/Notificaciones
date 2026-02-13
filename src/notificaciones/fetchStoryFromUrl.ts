@@ -35,9 +35,6 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
     
     const response = await fetch(apiUrl, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     })
     
     // Intentar leer el body incluso si hay error

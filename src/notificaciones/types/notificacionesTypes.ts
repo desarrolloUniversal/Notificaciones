@@ -79,12 +79,14 @@ export interface PendingNotificationFromUrl {
 
 /**
  * Datos necesarios para enviar una notificación
- * (Endpoint por definirse)
  */
 export interface NotificationSendPayload {
+  site: string
+  idarticulo: string
+  enviar_notificacion: string
+  reenviar: string
   url: string
-  titulo: string
-  thumbnail: string
-  seccion: string
-  // Agregar más campos cuando se defina el endpoint
+  title: string
+  content: string
+  userid: string
 }

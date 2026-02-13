@@ -1,8 +1,9 @@
 // src/notificaciones/sendNotification.ts
 import type { NotificationSendPayload, PendingNotificationFromUrl } from './types/notificacionesTypes'
+import { useAuthStore } from '../auth/useAuthStore'
+import { AuthService } from '../auth/authService'
 
-// TODO: Definir el endpoint real cuando esté disponible
-// const SEND_NOTIFICATION_ENDPOINT = 'https://api.eluniversal.com.mx/notifications/send' // PLACEHOLDER
+const SEND_NOTIFICATION_ENDPOINT = 'https://api.eluniversal.com.mx/notificacion/url'
 
 /**
  * Prepara el payload para enviar una notificación
@@ -10,12 +11,17 @@ import type { NotificationSendPayload, PendingNotificationFromUrl } from './type
  * @returns Payload formateado para el endpoint de envío
  */
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
+  const username = useAuthStore.getState().username || ''
+  
   return {
+    site: 'eluniversal',
+    idarticulo: notification.id || '',
+    enviar_notificacion: 'a Nota',
+    reenviar: 'False',
     url: notification.url,
-    titulo: notification.titulo,
-    thumbnail: notification.thumbnail,
-    seccion: notification.seccion,
-    // TODO: Agregar más campos según lo requiera el endpoint
+    title: notification.titulo,
+    content: notification.subtitulo || notification.titulo,
+    userid: username
   }
 }
 
@@ -35,22 +41,23 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
  * }
  * ```
  */
-export const sendNotification = async (_notification: PendingNotificationFromUrl): Promise<{
+export const sendNotification = async (notification: PendingNotificationFromUrl): Promise<{
   success: boolean
   message: string
   sentAt: string
 }> => {
   try {
-    // TODO: Descomentar y configurar cuando el endpoint esté disponible
-    /*
-    const payload = prepareSendPayload(_notification)
+    const payload = prepareSendPayload(notification)
+    
+    // Obtener headers de autenticación
+    const token = useAuthStore.getState().token
+    const authHeaders = AuthService.getAuthHeader(token)
     
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
       headers: {
+        ...authHeaders,
         'Content-Type': 'application/json',
-        // TODO: Agregar autenticación si es necesaria
-        // 'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     })
@@ -64,16 +71,6 @@ export const sendNotification = async (_notification: PendingNotificationFromUrl
     return {
       success: true,
       message: data.message || 'Notificación enviada correctamente',
-      sentAt: new Date().toISOString(),
-    }
-    */
-    
-    // MOCK: Simular respuesta exitosa mientras el endpoint se define
-    await new Promise(resolve => setTimeout(resolve, 1500)) // Simular latencia de red
-    
-    return {
-      success: true,
-      message: 'Notificación enviada correctamente (simulado)',
       sentAt: new Date().toISOString(),
     }
   } catch (error) {
