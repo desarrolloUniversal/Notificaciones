@@ -1065,10 +1065,10 @@ td a {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   border-bottom: none !important;
-  vertical-align: middle;
-  padding-top: 4.5rem !important;
+  vertical-align: top;
+  padding-top: 2.5rem !important;
 }
 
 .apply-btn {
