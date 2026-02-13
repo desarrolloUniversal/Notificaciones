@@ -1138,7 +1138,7 @@ function App() {
                         </div>
                       )}
                     </td>
-                    <td>{pending.fechaEnvio || 'Sin definir'}</td>
+                    <td>{pending.fechaEnvio || '-'}</td>
                     <td>
                       <span className="status-badge status-pending-orange">
                         ⏳ {pending.estadoEnvio}
