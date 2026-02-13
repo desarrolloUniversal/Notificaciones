@@ -3,25 +3,26 @@ import type { NotificationSendPayload, PendingNotificationFromUrl } from './type
 import { useAuthStore } from '../auth/useAuthStore'
 import { AuthService } from '../auth/authService'
 
-const SEND_NOTIFICATION_ENDPOINT = 'https://api.eluniversal.com.mx/notificacion/url'
+const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url'
 
 /**
  * Prepara el payload para enviar una notificación
  * @param notification Notificación pendiente a enviar
- * @returns Payload formateado para el endpoint de envío
+ * @returns Payload formateado para el endpoint de envío según especificación de la API
  */
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
   const username = useAuthStore.getState().username || ''
   
   return {
     site: 'eluniversal',
-    idarticulo: notification.id || '',
-    enviar_notificacion: 'a Nota',
-    reenviar: 'False',
+    idarticulo: notification.id,
+    link: 'a Nota',
+    userid: username,
+    // Campos opcionales
     url: notification.url,
     title: notification.titulo,
-    content: notification.subtitulo || notification.titulo,
-    userid: username
+    content: notification.subtitulo || notification.titulo
+    // id: 'ExponentPushToken[...]' // opcional: descomentar para enviar a usuario específico
   }
 }
 

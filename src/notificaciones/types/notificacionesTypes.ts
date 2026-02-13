@@ -78,15 +78,16 @@ export interface PendingNotificationFromUrl {
 }
 
 /**
- * Datos necesarios para enviar una notificación
+ * Datos necesarios para enviar una notificación push
+ * Endpoint: https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url
  */
 export interface NotificationSendPayload {
   site: string
   idarticulo: string
-  enviar_notificacion: string
-  reenviar: string
-  url: string
-  title: string
-  content: string
+  link: string
   userid: string
+  id?: string        // opcional: ExponentPushToken para usuario específico, si se omite se envía a todos
+  url?: string       // opcional: URL del artículo
+  title?: string     // opcional: Título de la notificación
+  content?: string   // opcional: Contenido de la notificación
 }

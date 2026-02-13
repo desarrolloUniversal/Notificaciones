@@ -93,7 +93,7 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
               <input
                 type="password"
                 className="login-form-input"
-                placeholder=""
+                placeholder="Ingrese su contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
