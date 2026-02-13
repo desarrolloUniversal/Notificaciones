@@ -1033,11 +1033,27 @@ function App() {
                 {pendingNotifications.map((pending, index) => (
                   <tr key={pending.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
                     <td>
-                      <img 
-                        src={getImageBySectionOrId(pending.thumbnail)} 
-                        alt={pending.titulo}
-                        className="thumbnail"
-                      />
+                      {pending.url ? (
+                        <a 
+                          href={pending.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          title="Ver nota completa"
+                        >
+                          <img 
+                            src={getImageBySectionOrId(pending.thumbnail)} 
+                            alt={pending.titulo}
+                            className="thumbnail"
+                            style={{ cursor: 'pointer' }}
+                          />
+                        </a>
+                      ) : (
+                        <img 
+                          src={getImageBySectionOrId(pending.thumbnail)} 
+                          alt={pending.titulo}
+                          className="thumbnail"
+                        />
+                      )}
                     </td>
                     <td>{pending.seccion}</td>
                     <td className="title-cell">{pending.titulo}</td>
@@ -1163,11 +1179,27 @@ function App() {
             {filteredNotifications.map((notification) => (
               <tr key={notification.id}>
                 <td>
-                  <img 
-                    src={getImageBySectionOrId(notification.thumbnail)} 
-                    alt={notification.titulo}
-                    className="thumbnail"
-                  />
+                  {notification.url ? (
+                    <a 
+                      href={notification.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      title="Ver nota completa"
+                    >
+                      <img 
+                        src={getImageBySectionOrId(notification.thumbnail)} 
+                        alt={notification.titulo}
+                        className="thumbnail"
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </a>
+                  ) : (
+                    <img 
+                      src={getImageBySectionOrId(notification.thumbnail)} 
+                      alt={notification.titulo}
+                      className="thumbnail"
+                    />
+                  )}
                 </td>
                 <td>{notification.seccion}</td>
                 <td className="title-cell">{notification.titulo}</td>

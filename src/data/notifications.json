@@ -10,7 +10,8 @@
     "totalEnvios": 2100,
     "leidos": 1543,
     "totalLeidos": 1890,
-    "usuarios": "Juan Pérez"
+    "usuarios": "Juan Pérez",
+    "url": "https://www.eluniversal.com.mx/deportes/gran-victoria-equipo-local"
   },
   {
     "id": 2,
@@ -23,7 +24,8 @@
     "totalEnvios": 3200,
     "leidos": 2890,
     "totalLeidos": 3050,
-    "usuarios": "María García"
+    "usuarios": "María García",
+    "url": "https://www.eluniversal.com.mx/techbit/nueva-actualizacion-disponible"
   },
   {
     "id": 3,
@@ -36,7 +38,8 @@
     "totalEnvios": 1500,
     "leidos": 987,
     "totalLeidos": 1320,
-    "usuarios": "Carlos Rodríguez"
+    "usuarios": "Carlos Rodríguez",
+    "url": "https://www.eluniversal.com.mx/nacion/eventos-importantes-semana"
   },
   {
     "id": 4,
@@ -49,7 +52,8 @@
     "totalEnvios": 4100,
     "leidos": 3456,
     "totalLeidos": 3890,
-    "usuarios": "Ana Martínez"
+    "usuarios": "Ana Martínez",
+    "url": "https://www.eluniversal.com.mx/cartera/descuentos-hasta-50"
   },
   {
     "id": 5,
@@ -62,7 +66,8 @@
     "totalEnvios": 6200,
     "leidos": 5678,
     "totalLeidos": 5950,
-    "usuarios": "Luis Fernández"
+    "usuarios": "Luis Fernández",
+    "url": "https://www.eluniversal.com.mx/espectaculos/nuevo-episodio-disponible"
   },  {
     "id": 6,
     "thumbnail": "../../src/assets/images/salud.jpg",
@@ -74,7 +79,8 @@
     "totalEnvios": 2800,
     "leidos": 2134,
     "totalLeidos": 2560,
-    "usuarios": "Laura López"
+    "usuarios": "Laura López",
+    "url": "https://www.eluniversal.com.mx/nacion/consejos-vida-saludable"
   },
   {
     "id": 7,
@@ -87,7 +93,8 @@
     "totalEnvios": 5400,
     "leidos": 0,
     "totalLeidos": 4980,
-    "usuarios": "Pedro Sánchez"
+    "usuarios": "Pedro Sánchez",
+    "url": "https://www.eluniversal.com.mx/techbit/curso-gratuito-programacion"
   },
   {
     "id": 8,
@@ -100,7 +107,8 @@
     "totalEnvios": 5000,
     "leidos": 4321,
     "totalLeidos": 4750,
-    "usuarios": "Sofia Torres"
+    "usuarios": "Sofia Torres",
+    "url": "https://www.eluniversal.com.mx/estados/alerta-meteorologica"
   },
   {
     "id": 9,
@@ -113,7 +121,8 @@
     "totalEnvios": 3800,
     "leidos": 3210,
     "totalLeidos": 3650,
-    "usuarios": "Diego Ramírez"
+    "usuarios": "Diego Ramírez",
+    "url": "https://www.eluniversal.com.mx/cartera/resumen-mensual-cuenta"
   },
   {
     "id": 10,
@@ -126,7 +135,8 @@
     "totalEnvios": 2500,
     "leidos": 0,
     "totalLeidos": 2300,
-    "usuarios": "Carmen Díaz"
+    "usuarios": "Carmen Díaz",
+    "url": ""
   }
   
 ]

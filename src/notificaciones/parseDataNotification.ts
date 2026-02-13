@@ -14,7 +14,8 @@ export const parseDataNotification = (apiNotifications: ApiNotification[]): Noti
       totalEnvios: apiNotif.suscriptores,
       leidos: Math.floor(apiNotif.suscriptores * 0.75),
       totalLeidos: Math.floor(apiNotif.suscriptores * 0.90),
-      usuarios: apiNotif.userid
+      usuarios: apiNotif.userid,
+      url: apiNotif.url || ''
     }
   })
 

@@ -248,6 +248,16 @@
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
+/* Estilos para enlaces de thumbnails */
+a[href] .thumbnail {
+  cursor: pointer;
+}
+
+td a {
+  text-decoration: none;
+  display: inline-block;
+}
+
 .title-cell {
   font-weight: 600;
   color: #1a1a1a;

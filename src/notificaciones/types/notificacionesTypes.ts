@@ -32,6 +32,7 @@ export interface Notification {
   leidos: number
   totalLeidos: number
   usuarios: string
+  url: string
 }
 
 // ========================================
