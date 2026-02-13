@@ -12,6 +12,7 @@ interface PendingNotificationsState {
   setCurrentUser: (username: string | null) => void
   addPendingNotification: (notification: PendingNotificationFromUrl) => void
   removePendingNotification: (id: string) => void
+  updatePendingNotification: (id: string, updates: Partial<PendingNotificationFromUrl>) => void
   clearCurrentUserNotifications: () => void
   clearAllNotifications: () => void
   getPendingNotifications: () => PendingNotificationFromUrl[]
@@ -69,6 +70,24 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
           pendingNotificationsByUser: {
             ...pendingNotificationsByUser,
             [currentUser]: userNotifications.filter((n) => n.id !== id),
+          }
+        })
+      },
+
+      // Actualizar notificación pendiente del usuario actual
+      updatePendingNotification: (id, updates) => {
+        const { currentUser, pendingNotificationsByUser } = get()
+        
+        if (!currentUser) return
+
+        const userNotifications = pendingNotificationsByUser[currentUser] || []
+        
+        set({
+          pendingNotificationsByUser: {
+            ...pendingNotificationsByUser,
+            [currentUser]: userNotifications.map((n) => 
+              n.id === id ? { ...n, ...updates } : n
+            ),
           }
         })
       },

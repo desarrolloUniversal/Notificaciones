@@ -13,17 +13,21 @@ const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.ama
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
   const username = useAuthStore.getState().username || ''
   
-  return {
+  const payload = {
     site: 'eluniversal',
     idarticulo: notification.id,
     link: 'a Nota',
     userid: username,
     // Campos opcionales
     url: notification.url,
-    title: notification.titulo,
-    content: notification.subtitulo || notification.titulo
+    title: notification.seccion,
+    content: notification.titulo  // Usa el título (puede estar modificado por el usuario)
     // id: 'ExponentPushToken[...]' // opcional: descomentar para enviar a usuario específico
   }
+
+  console.log('\n📦 [prepareSendPayload] Payload preparado:', payload)
+  
+  return payload
 }
 
 /**
@@ -48,11 +52,24 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
   sentAt: string
 }> => {
   try {
+    console.log('\n🚀 [sendNotification] Iniciando envío de notificación...')
+    console.log('📋 [sendNotification] Datos de la notificación:', {
+      id: notification.id,
+      titulo: notification.titulo,
+      seccion: notification.seccion,
+      url: notification.url,
+      subtitulo: notification.subtitulo
+    })
+    
     const payload = prepareSendPayload(notification)
     
     // Obtener headers de autenticación
     const token = useAuthStore.getState().token
     const authHeaders = AuthService.getAuthHeader(token)
+    
+    console.log('🔑 [sendNotification] Headers de autenticación:', authHeaders)
+    console.log('🎯 [sendNotification] Endpoint:', SEND_NOTIFICATION_ENDPOINT)
+    console.log('📤 [sendNotification] Enviando payload:', JSON.stringify(payload, null, 2))
     
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
@@ -64,10 +81,17 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     })
     
     if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [sendNotification] Error en respuesta:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
       throw new Error(`Error HTTP: ${response.status} ${response.statusText}`)
     }
     
     const data = await response.json()
+    console.log('✅ [sendNotification] Respuesta exitosa:', data)
     
     return {
       success: true,

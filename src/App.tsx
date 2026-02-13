@@ -36,6 +36,7 @@ function App() {
     getPendingNotifications,
     addPendingNotification,
     removePendingNotification,
+    updatePendingNotification,
     setCurrentUser
   } = usePendingNotificationsStore()
 
@@ -65,6 +66,8 @@ function App() {
   const [dateError, setDateError] = useState('')
   const [showCalendar, setShowCalendar] = useState<'start' | 'end' | null>(null)
   const [calendarDate, setCalendarDate] = useState(new Date())
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null)
+  const [editingTitleValue, setEditingTitleValue] = useState('')
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -197,12 +200,41 @@ function App() {
     removePendingNotification(id)
   }
 
+  const handleStartEditTitle = (id: string, currentTitle: string) => {
+    setEditingTitleId(id)
+    setEditingTitleValue(currentTitle)
+  }
+
+  const handleSaveTitle = (id: string) => {
+    if (editingTitleValue.trim()) {
+      console.log('✏️ [handleSaveTitle] Guardando título modificado:', {
+        id,
+        tituloAnterior: pendingNotifications.find(p => p.id === id)?.titulo,
+        tituloNuevo: editingTitleValue.trim()
+      })
+      updatePendingNotification(id, { titulo: editingTitleValue.trim() })
+      console.log('✅ [handleSaveTitle] Título actualizado correctamente')
+    }
+    setEditingTitleId(null)
+    setEditingTitleValue('')
+  }
+
+  const handleCancelEditTitle = () => {
+    setEditingTitleId(null)
+    setEditingTitleValue('')
+  }
+
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
+    console.log('\n🔔 [handleApplyPending] Aplicando notificación pendiente:', pending)
+    
     // Validar que la notificación pueda ser enviada
     if (!canSendNotification(pending)) {
+      console.error('❌ [handleApplyPending] Validación fallida')
       alert('❌ La notificación no puede ser enviada. Verifica que tenga todos los datos necesarios.')
       return
     }
+    
+    console.log('✅ [handleApplyPending] Validación exitosa, iniciando envío...')
     
     setUrlInput(pending.url)
     setIsLoadingNewNotification(true)
@@ -214,6 +246,7 @@ function App() {
       await new Promise(resolve => setTimeout(resolve, 300))
       
       // Llamar al endpoint de envío
+      console.log('🚀 [handleApplyPending] Llamando a sendNotification...')
       const result = await sendNotification(pending)
       
       setLoadingProgress(70)
@@ -1056,7 +1089,50 @@ function App() {
                       )}
                     </td>
                     <td>{pending.seccion}</td>
-                    <td className="title-cell">{pending.titulo}</td>
+                    <td className="title-cell editable-title-cell">
+                      {editingTitleId === pending.id ? (
+                        <div className="title-edit-container">
+                          <input
+                            type="text"
+                            className="title-edit-input"
+                            value={editingTitleValue}
+                            onChange={(e) => setEditingTitleValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveTitle(pending.id)
+                              if (e.key === 'Escape') handleCancelEditTitle()
+                            }}
+                            autoFocus
+                          />
+                          <div className="title-edit-actions">
+                            <button
+                              className="title-save-btn"
+                              onClick={() => handleSaveTitle(pending.id)}
+                              title="Guardar"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              className="title-cancel-btn"
+                              onClick={handleCancelEditTitle}
+                              title="Cancelar"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="title-display-container">
+                          <span className="title-text">{pending.titulo}</span>
+                          <button
+                            className="title-edit-btn"
+                            onClick={() => handleStartEditTitle(pending.id, pending.titulo)}
+                            title="Editar título"
+                          >
+                            ✎
+                          </button>
+                        </div>
+                      )}
+                    </td>
                     <td>{pending.fechaEnvio || 'Sin definir'}</td>
                     <td>
                       <span className="status-badge status-pending-orange">
