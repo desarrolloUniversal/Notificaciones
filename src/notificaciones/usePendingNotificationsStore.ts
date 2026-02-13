@@ -13,6 +13,7 @@ interface PendingNotificationsState {
   addPendingNotification: (notification: PendingNotificationFromUrl) => void
   removePendingNotification: (id: string) => void
   updatePendingNotification: (id: string, updates: Partial<PendingNotificationFromUrl>) => void
+  updateOldNotificationsUser: () => void
   clearCurrentUserNotifications: () => void
   clearAllNotifications: () => void
   getPendingNotifications: () => PendingNotificationFromUrl[]
@@ -36,6 +37,8 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
         if (username) {
           // Limpiar notificaciones antiguas al cambiar de usuario
           get().removeOldNotifications()
+          // Actualizar campo usuarios de notificaciones antiguas
+          get().updateOldNotificationsUser()
         }
       },
 
@@ -90,6 +93,31 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
             ),
           }
         })
+      },
+
+      // Actualizar el campo usuarios de notificaciones antiguas que tienen "Sistema"
+      updateOldNotificationsUser: () => {
+        const { currentUser, pendingNotificationsByUser } = get()
+        
+        if (!currentUser) return
+
+        const userNotifications = pendingNotificationsByUser[currentUser] || []
+        
+        // Actualizar notificaciones que tienen "Sistema" al usuario actual
+        const updatedNotifications = userNotifications.map((n) => 
+          n.usuarios === 'Sistema' ? { ...n, usuarios: currentUser } : n
+        )
+        
+        // Solo actualizar si hubo cambios
+        if (JSON.stringify(updatedNotifications) !== JSON.stringify(userNotifications)) {
+          set({
+            pendingNotificationsByUser: {
+              ...pendingNotificationsByUser,
+              [currentUser]: updatedNotifications,
+            }
+          })
+          console.log('✅ [PendingStore] Notificaciones antiguas actualizadas con usuario:', currentUser)
+        }
       },
 
       // Limpiar notificaciones del usuario actual

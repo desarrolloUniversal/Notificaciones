@@ -1,5 +1,6 @@
 // src/notificaciones/parseStoryToNotification.ts
 import type { StoryApiResponse, PendingNotificationFromUrl } from './types/notificacionesTypes'
+import { useAuthStore } from '../auth/useAuthStore'
 
 /**
  * Normaliza texto UTF-8 y capitaliza la primera letra
@@ -126,6 +127,9 @@ export const parseStoryToNotification = (
     ? `${baseUrl}${storyData.canonical_url}` 
     : originalUrl
   
+  // Obtener usuario actual de la sesión
+  const currentUser = useAuthStore.getState().username || 'Sistema'
+  
   const notification: PendingNotificationFromUrl = {
     id: storyData.idarticulo,
     thumbnail,
@@ -135,7 +139,7 @@ export const parseStoryToNotification = (
     url: fullUrl,
     estadoEnvio: 'Pendiente',
     fechaEnvio: null,
-    usuarios: 'Sistema', // TODO: Obtener desde sistema de login
+    usuarios: currentUser,
     timestamp: new Date().toISOString(),
   }
   
