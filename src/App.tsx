@@ -1141,7 +1141,7 @@ function App() {
                     <td>{pending.fechaEnvio || '-'}</td>
                     <td>
                       <span className="status-badge status-pending-orange">
-                        ⏳ {pending.estadoEnvio}
+                        {pending.estadoEnvio}
                       </span>
                     </td>
                     <td className="number-cell">0</td>
