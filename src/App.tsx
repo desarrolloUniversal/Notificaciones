@@ -119,8 +119,9 @@ function App() {
 
   const handleModalClose = () => {
     setIsModalOpen(false)
-    // Limpiar modal input al cerrar sin guardar
+    // ✅ Limpiar ambos campos al cerrar sin guardar (descartar)
     setModalUrlInput('')
+    setUrlInput('')
   }
 
   const handleModalUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,6 +182,10 @@ function App() {
       
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // ✅ Limpiar campos después de agregar exitosamente
+      setUrlInput('')
+      setModalUrlInput('')
     } catch (error) {
       console.error('\n❌ [handleApplyUrl] ERROR al procesar URL:', error)
       console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A')
