@@ -773,6 +773,15 @@ td a {
   }
 }
 
+@keyframes swing {
+  0%, 100% { 
+    transform: rotate(-10deg); 
+  }
+  50% { 
+    transform: rotate(10deg); 
+  }
+}
+
 .confirm-title {
   font-size: 1.4rem;
   font-weight: 600;
@@ -952,25 +961,33 @@ td a {
 }
 
 .pending-banner {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  border: 3px dashed #f39c12;
+  background: linear-gradient(135deg, #f0d16d 0%, #d4af37 100%);
+  border: 3px dashed #d4af37;
   border-radius: 12px 12px 0 0;
   padding: 1.2rem 2rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
 }
 
 .pending-icon {
   font-size: 1.8rem;
-  animation: bounce 0.6s ease infinite;
+  animation: swing 1s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pending-icon svg {
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .pending-title {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #d35400;
+  color: #8b7500;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   font-family: 'Georgia', 'Times New Roman', serif;
@@ -978,25 +995,25 @@ td a {
 }
 
 .pending-count {
-  background: #e67e22;
+  background: #c9a12b;
   color: #ffffff;
   padding: 0.4rem 1rem;
   border-radius: 20px;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.5);
 }
 
 .pending-table-wrapper {
   border-radius: 0 0 12px 12px;
-  border: 3px solid #f39c12;
+  border: 3px solid #d4af37;
   border-top: none;
-  background: #fffbf0;
+  background: #fffef5;
 }
 
 .pending-notifications-table thead {
-  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-  border-bottom: 3px solid #f39c12;
+  background: linear-gradient(135deg, #d4af37 0%, #c9a12b 100%);
+  border-bottom: 3px solid #d4af37;
 }
 
 .pending-notifications-table thead th {
@@ -1008,26 +1025,26 @@ td a {
 }
 
 .pending-notifications-table tbody tr.even-row {
-  background: #fff9e6;
+  background: #fffef5;
 }
 
 .pending-notifications-table tbody tr.odd-row {
-  background: #fffbf0;
+  background: #fffcf0;
 }
 
 .pending-notifications-table tbody tr:hover {
-  background: #ffe8b3 !important;
+  background: #fff5d6 !important;
   transform: scale(1.005);
-  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
 }
 
 .pending-notifications-table td {
-  color: #7d5a00;
-  border-bottom: 1px solid #ffd89b;
+  color: #7d6b00;
+  border-bottom: 1px solid #f0d16d;
 }
 
 .pending-notifications-table .title-cell {
-  color: #d35400;
+  color: #8b7500;
   font-weight: 600;
   max-width: 280px;
   word-wrap: break-word;
@@ -1039,7 +1056,7 @@ td a {
 }
 
 .status-pending-orange {
-  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #c9a12b 100%);
   color: #ffffff;
   padding: 6px 14px;
   border-radius: 20px;
@@ -1050,7 +1067,7 @@ td a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -1210,7 +1227,7 @@ td a {
 }
 
 .filter-dropdown-btn:hover {
-  background: rgba(243, 156, 18, 0.1);
+  background: rgba(212, 175, 55, 0.1);
   transform: scale(1.1);
 }
 
@@ -1390,12 +1407,12 @@ td a {
 .filter-selection-info {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
-  border-left: 4px solid #f39c12;
+  background: linear-gradient(135deg, #fffef5 0%, #f0d16d 100%);
+  border-left: 4px solid #d4af37;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #7d5a00;
+  color: #7d6b00;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1409,11 +1426,11 @@ td a {
 @keyframes lightbulbGlow {
   0%, 100% {
     opacity: 1;
-    filter: drop-shadow(0 0 2px rgba(243, 156, 18, 0.4));
+    filter: drop-shadow(0 0 2px rgba(212, 175, 55, 0.4));
   }
   50% {
     opacity: 0.8;
-    filter: drop-shadow(0 0 6px rgba(243, 156, 18, 0.8));
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.8));
   }
 }
 
@@ -1805,8 +1822,8 @@ td a {
 }
 
 .calendar-day-today {
-  background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
-  border-color: #f39c12;
+  background: linear-gradient(135deg, #fffef5 0%, #f0d16d 100%);
+  border-color: #d4af37;
   font-weight: 700;
 }
 
