@@ -288,15 +288,16 @@ td a {
 }
 
 .title-edit-btn {
-  background: transparent;
-  border: 1px solid #d4af37;
-  color: #d4af37;
+  background: #2c3e50;
+  border: 1px solid white;
+  color: white;
   padding: 4px 8px;
   font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  opacity: 0;
+  opacity: 1;
+  transform: scaleX(-1);
 }
 
 .title-display-container:hover .title-edit-btn {
@@ -304,7 +305,7 @@ td a {
 }
 
 .title-edit-btn:hover {
-  background: #d4af37;
+  background: #34495e;
   color: white;
 }
 
