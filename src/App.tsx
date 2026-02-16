@@ -183,6 +183,9 @@ function App() {
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
       
+      // ✅ Alerta de éxito
+      alert(`✅ URL agregada correctamente a pendientes\n\nTítulo: ${notification.titulo}\nSección: ${notification.seccion}`)
+      
       // ✅ Limpiar campos después de agregar exitosamente
       setUrlInput('')
       setModalUrlInput('')
@@ -192,6 +195,9 @@ function App() {
       
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido al obtener artículo'
       setLoadingError(errorMessage)
+      
+      // ❌ Alerta de error
+      alert(`❌ Error al cargar la URL\n\n${errorMessage}\n\nVerifica que la URL sea válida y que el artículo exista.`)
       
       // Mantener el error visible por más tiempo
       await new Promise(resolve => setTimeout(resolve, 4000))
