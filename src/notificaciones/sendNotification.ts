@@ -13,13 +13,25 @@ const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.ama
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
   const username = useAuthStore.getState().username || ''
   
+  // Extraer solo el pathname de la URL (sin dominio)
+  let urlPath = notification.url
+  try {
+    const urlObj = new URL(notification.url)
+    urlPath = urlObj.pathname
+    console.log('🔗 [prepareSendPayload] URL original:', notification.url)
+    console.log('📍 [prepareSendPayload] Path extraído:', urlPath)
+  } catch (error) {
+    // Si no es una URL válida, usar el valor original
+    console.warn('⚠️ [prepareSendPayload] URL no válida, usando valor original:', notification.url)
+  }
+  
   const payload = {
     site: 'eluniversal',
     idarticulo: notification.id,
     link: 'a Nota',
     userid: username,
     // Campos opcionales
-    url: notification.url,
+    url: urlPath,
     title: notification.seccion,
     content: notification.titulo  // Usa el título (puede estar modificado por el usuario)
     // id: 'ExponentPushToken[...]' // opcional: descomentar para enviar a usuario específico
@@ -70,6 +82,21 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     console.log('🔑 [sendNotification] Headers de autenticación:', authHeaders)
     console.log('🎯 [sendNotification] Endpoint:', SEND_NOTIFICATION_ENDPOINT)
     console.log('📤 [sendNotification] Enviando payload:', JSON.stringify(payload, null, 2))
+    
+    console.log('\n═══════════════════════════════════════════════════════')
+    console.log('📡 DATOS QUE SE SUBEN AL API:')
+    console.log('═══════════════════════════════════════════════════════')
+    console.table({
+      'Site': payload.site,
+      'ID Artículo': payload.idarticulo,
+      'Link': payload.link,
+      'Usuario': payload.userid,
+      'URL (path)': payload.url,
+      'Title (sección)': payload.title,
+      'Content (título)': payload.content
+    })
+    console.log('JSON completo:', payload)
+    console.log('═══════════════════════════════════════════════════════\n')
     
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
