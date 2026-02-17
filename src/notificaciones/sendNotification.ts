@@ -1,7 +1,7 @@
 // src/notificaciones/sendNotification.ts
 import type { NotificationSendPayload, PendingNotificationFromUrl } from './types/notificacionesTypes'
 import { useAuthStore } from '../auth/useAuthStore'
-import { AuthService } from '../auth/authService'
+
 
 const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url'
 
@@ -20,8 +20,8 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     userid: username,
     // Campos opcionales
     url: notification.url,
-    title: notification.titulo,
-    content: notification.subtitulo || notification.titulo
+    title: notification.seccion,
+    content: notification.titulo 
     // id: 'ExponentPushToken[...]' // opcional: descomentar para enviar a usuario específico
   }
 }
@@ -51,13 +51,12 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     const payload = prepareSendPayload(notification)
     
     // Obtener headers de autenticación
-    const token = useAuthStore.getState().token
-    const authHeaders = AuthService.getAuthHeader(token)
+
     
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
       headers: {
-        ...authHeaders,
+
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
