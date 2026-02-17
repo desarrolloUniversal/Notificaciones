@@ -326,6 +326,7 @@ td a {
   color: #1a1a1a;
   outline: none;
   transition: border-color 0.2s ease;
+  background-color: whitesmoke;
 }
 
 .title-edit-input:focus {

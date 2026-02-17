@@ -76,10 +76,8 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     const payload = prepareSendPayload(notification)
     
     // Obtener headers de autenticación
-    const token = useAuthStore.getState().token
-    const authHeaders = AuthService.getAuthHeader(token)
+
     
-    console.log('🔑 [sendNotification] Headers de autenticación:', authHeaders)
     console.log('🎯 [sendNotification] Endpoint:', SEND_NOTIFICATION_ENDPOINT)
     console.log('📤 [sendNotification] Enviando payload:', JSON.stringify(payload, null, 2))
     
@@ -101,7 +99,7 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
       headers: {
-        ...authHeaders,
+ 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
