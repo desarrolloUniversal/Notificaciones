@@ -1,7 +1,7 @@
 // src/notificaciones/sendNotification.ts
 import type { NotificationSendPayload, PendingNotificationFromUrl } from './types/notificacionesTypes'
 import { useAuthStore } from '../auth/useAuthStore'
-import { AuthService } from '../auth/authService'
+
 
 const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url'
 
