@@ -45,6 +45,17 @@ export class AuthService {
         throw new Error('Respuesta inválida del servidor')
       }
 
+      // Validar que el usuario tenga el grupo "Notificaciones Push"
+      if (data.grupos && Array.isArray(data.grupos)) {
+        const hasNotificationsPushGroup = data.grupos.includes('Notificaciones Push')
+        if (!hasNotificationsPushGroup) {
+          throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo usuarios autorizados pueden mandar notificaciones.')
+        }
+      } else {
+        // Si no viene el campo grupos, rechazar por seguridad
+        throw new Error('No se pudo verificar tus permisos. Contacta al administrador.')
+      }
+
       const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
       const expiresIn = 3600 // 1 hora
       const expiresAt = Date.now() + (expiresIn * 1000)
@@ -53,6 +64,7 @@ export class AuthService {
         accessToken: basicAuth,
         expiresAt,
         username: credentials.username,
+        grupos: data.grupos || [],
       }
     } catch (error) {
       if (error instanceof Error) {
