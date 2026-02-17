@@ -24,11 +24,19 @@ interface AuthState {
   setError: (error: string) => void
 }
 
-// Función para determinar qué storage usar
-const getStorage = () => {
-  // Verificar si rememberMe está guardado en localStorage
-  const rememberMe = localStorage.getItem('auth-remember-me')
-  return rememberMe === 'true' ? localStorage : sessionStorage
+// Estado persistente en localStorage para sesiones permanentes
+const PERSISTENT_STORAGE_KEY = 'auth-storage'
+const SESSION_ACTIVE_KEY = 'auth-session-active'
+
+// Marcar la sesión como activa en sessionStorage
+// Este valor se pierde al cerrar el navegador
+const markSessionActive = () => {
+  sessionStorage.setItem(SESSION_ACTIVE_KEY, 'true')
+}
+
+// Verificar si la sesión estaba activa (si existe en sessionStorage)
+const wasSessionActive = () => {
+  return sessionStorage.getItem(SESSION_ACTIVE_KEY) === 'true'
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -50,13 +58,6 @@ export const useAuthStore = create<AuthState>()(
 
           const authToken = await AuthService.login(credentials)
 
-          // Guardar preferencia de rememberMe
-          if (credentials.rememberMe) {
-            localStorage.setItem('auth-remember-me', 'true')
-          } else {
-            localStorage.removeItem('auth-remember-me')
-          }
-
           set({
             token: authToken.accessToken,
             username: authToken.username,
@@ -66,6 +67,9 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           })
+          
+          // Marcar sesión como activa
+          markSessionActive()
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión'
           set({
@@ -82,9 +86,6 @@ export const useAuthStore = create<AuthState>()(
 
       // Logout del usuario
       logout: () => {
-        // Limpiar preferencia de rememberMe
-        localStorage.removeItem('auth-remember-me')
-        
         set({
           token: null,
           username: null,
@@ -93,6 +94,9 @@ export const useAuthStore = create<AuthState>()(
           rememberMe: false,
           error: null,
         })
+        // Limpiar localStorage y sessionStorage
+        localStorage.removeItem(PERSISTENT_STORAGE_KEY)
+        sessionStorage.removeItem(SESSION_ACTIVE_KEY)
       },
 
       // Renovar token con nuevas credenciales
@@ -131,8 +135,8 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-storage',
-      storage: createJSONStorage(getStorage),
+      name: PERSISTENT_STORAGE_KEY,
+      storage: createJSONStorage(() => localStorage),
       
       // Solo persistir datos de autenticación, no estados temporales
       partialize: (state) => ({
@@ -148,6 +152,23 @@ export const useAuthStore = create<AuthState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return
 
+        // Si rememberMe es false y el navegador se cerró (sessionStorage vacío),
+        // limpiar la sesión
+        if (state.rememberMe === false && !wasSessionActive()) {
+          state.token = null
+          state.username = null
+          state.isAuthenticated = false
+          state.expiresAt = null
+          localStorage.removeItem(PERSISTENT_STORAGE_KEY)
+          return
+        }
+
+        // Si llegamos aquí, la sesión sigue activa
+        // Marcar sesión como activa para futuras recargas
+        if (state.isAuthenticated) {
+          markSessionActive()
+        }
+
         // Verificar si el token ha expirado
         if (state.expiresAt && Date.now() >= state.expiresAt) {
           // Limpiar estado y storage
@@ -156,7 +177,8 @@ export const useAuthStore = create<AuthState>()(
           state.isAuthenticated = false
           state.expiresAt = null
           state.rememberMe = false
-          localStorage.removeItem('auth-remember-me')
+          localStorage.removeItem(PERSISTENT_STORAGE_KEY)
+          sessionStorage.removeItem(SESSION_ACTIVE_KEY)
         }
       },
 
