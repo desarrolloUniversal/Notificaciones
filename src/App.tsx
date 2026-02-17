@@ -183,9 +183,6 @@ function App() {
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // ✅ Alerta de éxito
-      alert(`✅ URL agregada correctamente a pendientes\n\nTítulo: ${notification.titulo}\nSección: ${notification.seccion}`)
-      
       // ✅ Limpiar campos después de agregar exitosamente
       setUrlInput('')
       setModalUrlInput('')
@@ -268,8 +265,6 @@ function App() {
       
       // Remover de pendientes después de envío exitoso
       removePendingNotification(pending.id)
-      
-      alert(`✅ Notificación "${pending.titulo}" enviada correctamente.\n\n${result.message}`)
       
       // Refrescar lista de notificaciones
       fetchNotifications(true)
