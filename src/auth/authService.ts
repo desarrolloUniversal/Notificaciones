@@ -33,16 +33,16 @@ export class AuthService {
       }
 
       if (!data || typeof data !== 'object') {
-        throw new Error('Respuesta inválida del servidor')
+        throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
       }
 
       // Validar respuesta: status=0 O debe tener usuario/nombre
       if (data.status !== undefined) {
         if (data.status !== 0) {
-          throw new Error(data.message || 'Credenciales inválidas')
+          throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
         }
       } else if (!data.usuario && !data.nombre) {
-        throw new Error('Respuesta inválida del servidor')
+        throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
       }
 
       // Validar que el usuario tenga el grupo "Notificaciones Push"
