@@ -68,6 +68,9 @@ function App() {
   const [calendarDate, setCalendarDate] = useState(new Date())
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null)
   const [editingTitleValue, setEditingTitleValue] = useState('')
+  const [isEditWarningModalOpen, setIsEditWarningModalOpen] = useState(false)
+  const [isResendErrorModalOpen, setIsResendErrorModalOpen] = useState(false)
+  const [isResendSuccessModalOpen, setIsResendSuccessModalOpen] = useState(false)
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -224,6 +227,12 @@ function App() {
   }
 
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
+    // Verificar si hay una edición de título en curso
+    if (editingTitleId !== null) {
+      setIsEditWarningModalOpen(true)
+      return
+    }
+    
     // Validar que la notificación pueda ser enviada
     if (!canSendNotification(pending)) {
       alert('❌ La notificación no puede ser enviada. Verifica que tenga todos los datos necesarios.')
@@ -556,7 +565,7 @@ function App() {
 
   const handleResend = (notification: typeof notifications[0]) => {
     if (!isAuthenticated || !username) {
-      alert('⚠️ Debes iniciar sesión para reenviar notificaciones')
+      setIsResendErrorModalOpen(true)
       return
     }
 
@@ -577,7 +586,7 @@ function App() {
     }
     
     addPendingNotification(pendingNotification)
-    alert('✅ Notificación agregada a pendientes para reenvío')
+    setIsResendSuccessModalOpen(true)
   }
 
   const getStatusClass = (status: string) => {
@@ -1339,6 +1348,119 @@ function App() {
           </tbody>
         </table>
       </div>
+      )}
+
+      {/* Modal de advertencia de edición */}
+      {isEditWarningModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsEditWarningModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#f39c12" strokeWidth="2" fill="none"/>
+                  <path d="M12 8V12" stroke="#f39c12" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="12" cy="16" r="1" fill="#f39c12"/>
+                </svg>
+                Edición en Curso
+              </h2>
+              <button className="modal-close-btn" onClick={() => setIsEditWarningModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: '#2c3e50', marginBottom: '16px' }}>
+                Tienes una <strong>edición de título abierta</strong>.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn-primary" 
+                onClick={() => setIsEditWarningModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de error de reenvío (no autenticado) */}
+      {isResendErrorModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsResendErrorModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#e74c3c" strokeWidth="2" fill="none"/>
+                  <path d="M12 8V12" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="12" cy="16" r="1" fill="#e74c3c"/>
+                </svg>
+                Sesión Requerida
+              </h2>
+              <button className="modal-close-btn" onClick={() => setIsResendErrorModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: '#2c3e50', marginBottom: '8px' }}>
+                Debes <strong>iniciar sesión</strong> para reenviar notificaciones.
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                Por favor inicia sesión con tu cuenta.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn-primary" 
+                onClick={() => setIsResendErrorModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de éxito de reenvío */}
+      {isResendSuccessModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsResendSuccessModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#27ae60" strokeWidth="2" fill="none"/>
+                  <path d="M8 12L11 15L16 9" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                ¡Agregada!
+              </h2>
+              <button className="modal-close-btn" onClick={() => setIsResendSuccessModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: '#2c3e50', marginBottom: '8px' }}>
+                Notificación agregada a <strong>pendientes para reenvío</strong>.
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                Puedes editarla antes de enviarla.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn-primary" 
+                onClick={() => setIsResendSuccessModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal de Inicio de Sesión */}
