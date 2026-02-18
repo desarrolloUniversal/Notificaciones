@@ -415,6 +415,44 @@ td a {
   border: 1px solid #f5c6cb;
 }
 
+/* Contenedor de estado con botón de reenviar */
+.status-cell-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Botón de reenviar - tonalidad azul */
+.resend-btn {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.resend-btn:hover {
+  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.5);
+}
+
+.resend-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(44, 62, 80, 0.3);
+}
+
 /* Estados de carga y error */
 .success-alert {
   background: linear-gradient(135deg, #28a745 0%, #218838 100%);

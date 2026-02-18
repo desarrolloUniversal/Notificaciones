@@ -569,6 +569,29 @@ function App() {
     })
   }
 
+  const handleResend = (notification: typeof notifications[0]) => {
+    if (!isAuthenticated || !username) {
+      alert('⚠️ Debes iniciar sesión para reenviar notificaciones')
+      return
+    }
+
+    const pendingNotification: PendingNotificationFromUrl = {
+      id: `resend-${notification.id}-${Date.now()}`,
+      thumbnail: notification.thumbnail,
+      seccion: notification.seccion,
+      titulo: notification.titulo,
+      subtitulo: notification.subtitulo,
+      url: notification.url,
+      estadoEnvio: 'Pendiente',
+      fechaEnvio: null,
+      usuarios: username,
+      timestamp: new Date().toISOString()
+    }
+    
+    addPendingNotification(pendingNotification)
+    alert('✅ Notificación agregada a pendientes para reenvío')
+  }
+
   const getStatusClass = (status: string) => {
     switch (status.toLowerCase()) {
       case 'enviado':
@@ -1306,9 +1329,20 @@ function App() {
                 <td className="title-cell">{notification.titulo}</td>
                 <td>{formatDate(notification.fechaEnvio)}</td>
                 <td>
-                  <span className={`status-badge ${getStatusClass(notification.estadoEnvio)}`}>
-                    {notification.estadoEnvio}
-                  </span>
+                  <div className="status-cell-container">
+                    <span className={`status-badge ${getStatusClass(notification.estadoEnvio)}`}>
+                      {notification.estadoEnvio}
+                    </span>
+                    {isAuthenticated && notification.estadoEnvio.toLowerCase() === 'enviado' && (
+                      <button 
+                        className="resend-btn"
+                        onClick={() => handleResend(notification)}
+                        title="Reenviar notificación"
+                      >
+                        ↻ Reenviar
+                      </button>
+                    )}
+                  </div>
                 </td>
                 <td className="number-cell">{notification.totalEnvios.toLocaleString()}</td>
                 <td>{notification.usuarios}</td>
