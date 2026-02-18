@@ -187,9 +187,6 @@ function App() {
       setUrlInput('')
       setModalUrlInput('')
     } catch (error) {
-      console.error('\n❌ [handleApplyUrl] ERROR al procesar URL:', error)
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A')
-      
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido al obtener artículo'
       setLoadingError(errorMessage)
       
@@ -215,13 +212,7 @@ function App() {
 
   const handleSaveTitle = (id: string) => {
     if (editingTitleValue.trim()) {
-      console.log('✏️ [handleSaveTitle] Guardando título modificado:', {
-        id,
-        tituloAnterior: pendingNotifications.find(p => p.id === id)?.titulo,
-        tituloNuevo: editingTitleValue.trim()
-      })
       updatePendingNotification(id, { titulo: editingTitleValue.trim() })
-      console.log('✅ [handleSaveTitle] Título actualizado correctamente')
     }
     setEditingTitleId(null)
     setEditingTitleValue('')
@@ -233,16 +224,11 @@ function App() {
   }
 
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
-    console.log('\n🔔 [handleApplyPending] Aplicando notificación pendiente:', pending)
-    
     // Validar que la notificación pueda ser enviada
     if (!canSendNotification(pending)) {
-      console.error('❌ [handleApplyPending] Validación fallida')
       alert('❌ La notificación no puede ser enviada. Verifica que tenga todos los datos necesarios.')
       return
     }
-    
-    console.log('✅ [handleApplyPending] Validación exitosa, iniciando envío...')
     
     setUrlInput(pending.url)
     setIsLoadingNewNotification(true)
@@ -254,8 +240,7 @@ function App() {
       await new Promise(resolve => setTimeout(resolve, 300))
       
       // Llamar al endpoint de envío
-      console.log('🚀 [handleApplyPending] Llamando a sendNotification...')
-      const result = await sendNotification(pending)
+      await sendNotification(pending)
       
       setLoadingProgress(70)
       await new Promise(resolve => setTimeout(resolve, 300))
@@ -576,7 +561,7 @@ function App() {
     }
 
     const pendingNotification: PendingNotificationFromUrl = {
-      id: `resend-${notification.id}-${Date.now()}`,
+      id: `${notification.id}-${Date.now()}`,
       thumbnail: notification.thumbnail,
       seccion: notification.seccion,
       titulo: notification.titulo,
@@ -585,7 +570,10 @@ function App() {
       estadoEnvio: 'Pendiente',
       fechaEnvio: null,
       usuarios: username,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      isResend: true,  // Marcar como reenvío
+      originalTitulo: notification.titulo,  // Guardar título original
+      originalId: notification.id  // Guardar ID original del artículo
     }
     
     addPendingNotification(pendingNotification)

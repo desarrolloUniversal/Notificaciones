@@ -52,7 +52,7 @@ export interface StoryApiResponse {
   display_date: string
   first_publish_date: string
   headlines_basic: string // JSON string con el título
-  idarticulo: string
+ //s idarticulo: string
   primary_section_path: string
   promo_items: string // JSON string con imagen y metadata
   publish_date: string
@@ -76,6 +76,9 @@ export interface PendingNotificationFromUrl {
   fechaEnvio: null
   usuarios: string
   timestamp: string // Timestamp de cuándo se agregó a pendientes
+  isResend?: boolean // Indica si viene del botón de reenviar
+  originalTitulo?: string // Título original para detectar ediciones
+  originalId?: string // ID original del artículo (sin prefijo 'resend-')
 }
 
 /**
@@ -84,11 +87,12 @@ export interface PendingNotificationFromUrl {
  */
 export interface NotificationSendPayload {
   site: string
-  idarticulo: string
+  idarticulo?: string
   link: string
   userid: string
   id?: string        // opcional: ExponentPushToken para usuario específico, si se omite se envía a todos
   url?: string       // opcional: URL del artículo
   title?: string     // opcional: Título de la notificación
   content?: string   // opcional: Contenido de la notificación
+  forward?: boolean  // opcional: Indica si es un reenvío
 }
