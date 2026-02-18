@@ -52,7 +52,7 @@ export interface StoryApiResponse {
   display_date: string
   first_publish_date: string
   headlines_basic: string // JSON string con el título
- //s idarticulo: string
+  idarticulo: string
   primary_section_path: string
   promo_items: string // JSON string con imagen y metadata
   publish_date: string

@@ -74,11 +74,7 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
       throw new Error(`Error al parsear respuesta JSON: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`)
     }
     
-    // Validar que tenga los campos mínimos necesarios
-    if (!data.idarticulo) {
-      console.error('❌ [fetchStoryFromUrl] Respuesta sin idarticulo:', data)
-      throw new Error('La respuesta no contiene un ID de artículo válido. La API devolvió datos incompletos.')
-    }
+
     
     return data
   } catch (error) {
