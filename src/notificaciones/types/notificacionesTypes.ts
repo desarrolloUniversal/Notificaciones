@@ -79,6 +79,7 @@ export interface PendingNotificationFromUrl {
   isResend?: boolean // Indica si viene del botón de reenviar
   originalTitulo?: string // Título original para detectar ediciones
   originalId?: string // ID original del artículo (sin prefijo 'resend-')
+  imageurl: string
 }
 
 /**

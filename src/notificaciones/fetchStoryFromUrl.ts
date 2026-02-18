@@ -1,4 +1,9 @@
 // src/notificaciones/fetchStoryFromUrl.ts
+
+
+// Este módulo se encarga de obtener los datos de un artículo a partir de su URL
+//  utilizando la API de stories para alimentar notificaciones pendientes
+
 import type { StoryApiResponse } from './types/notificacionesTypes'
 
 // URL directa del servidor de la API de stories
@@ -64,7 +69,7 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
       
       throw new Error(errorMessage)
     }
-    
+    console.log('✅ [fetchStoryFromUrl] Respuesta :', responseText)
     // Parsear JSON
     let data: StoryApiResponse
     try {
@@ -75,7 +80,7 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
     }
     
 
-    
+    console.log('✅ [fetchStoryFromUrl] Story obtenido exitosamente:', data)
     return data
   } catch (error) {
     console.error('❌ [fetchStoryFromUrl] Error al obtener story:', error)
