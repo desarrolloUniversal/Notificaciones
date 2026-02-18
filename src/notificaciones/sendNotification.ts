@@ -25,10 +25,14 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     console.warn('⚠️ [prepareSendPayload] URL no válida, usando valor original:', notification.url)
   }
   
+  // Detectar si es un reenvío (ID empieza con 'resend-')
+  const isResend = notification.id.startsWith('resend-')
+  const linkType = isResend ? 'Reenviar' : 'a Nota'
+  
   const payload = {
     site: 'eluniversal',
     idarticulo: notification.id,
-    link: 'a Nota',
+    link: linkType,
     userid: username,
     // Campos opcionales
     url: urlPath,
@@ -38,6 +42,7 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
   }
 
   console.log('\n📦 [prepareSendPayload] Payload preparado:', payload)
+  console.log('🔄 [prepareSendPayload] Tipo de acción:', linkType)
   
   return payload
 }
