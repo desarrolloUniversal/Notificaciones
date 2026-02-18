@@ -718,7 +718,7 @@ td a {
 }
 
 .modal-footer {
-  padding: 1.5rem 2rem;
+  padding: 1rem 2rem;
   background: #f8f9fa;
   display: flex;
   gap: 1rem;
@@ -1121,15 +1121,61 @@ td a {
 /* Actions Cell and Delete Button */
 .actions-cell {
   text-align: center;
-  padding: 0.8rem !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+  vertical-align: top;
+}
+
+.actions-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 160px;
+}
+
+.actions-zone {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actions-zone-yellow {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%);
+  border-bottom: 2px solid #f1c40f;
+  padding: 1.2rem 0.8rem;
+}
+
+.actions-zone-purple {
+  background: linear-gradient(135deg, #f3e5f5 0%, #e8daef 100%);
+  padding: 0.5rem 0.8rem;
+}
+
+.zone-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+  opacity: 0.85;
+}
+
+.actions-zone-yellow .zone-label {
+  color: #d68910;
+}
+
+.actions-zone-purple .zone-label {
+  color: #7d3c98;
+}
+
+.zone-buttons {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
-  align-items: flex-start;
-  border-bottom: none !important;
-  vertical-align: top;
-  padding-top: 2.5rem !important;
+  align-items: center;
 }
+
 
 .apply-btn {
   background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
@@ -1157,6 +1203,39 @@ td a {
 .apply-btn:active {
   transform: translateY(0) scale(0.95);
   box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+}
+
+.test-btn {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+}
+
+.test-btn svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+}
+
+.test-btn:hover {
+  background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.5);
+}
+
+.test-btn:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 4px rgba(155, 89, 182, 0.3);
 }
 
 .delete-btn {

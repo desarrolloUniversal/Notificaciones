@@ -71,6 +71,10 @@ function App() {
   const [isEditWarningModalOpen, setIsEditWarningModalOpen] = useState(false)
   const [isResendErrorModalOpen, setIsResendErrorModalOpen] = useState(false)
   const [isResendSuccessModalOpen, setIsResendSuccessModalOpen] = useState(false)
+  const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
+  const [tokenInput, setTokenInput] = useState('')
+  const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
+  const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -129,6 +133,49 @@ function App() {
 
   const handleModalUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setModalUrlInput(e.target.value)
+  }
+
+  const handleOpenTokenModal = (notificationId: string) => {
+    setSelectedNotificationId(notificationId)
+    setTokenInput('')
+    setIsTokenModalOpen(true)
+  }
+
+  const handleCloseTokenModal = () => {
+    setIsTokenModalOpen(false)
+    setTokenInput('')
+    setSelectedNotificationId(null)
+    setIsInstructionsExpanded(false)
+  }
+
+  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTokenInput(e.target.value)
+  }
+
+  const handleSendToken = () => {
+    const token = tokenInput.trim()
+    
+    if (!token) {
+      alert('Por favor ingrese un token válido')
+      return
+    }
+
+    if (!selectedNotificationId) {
+      alert('Error: No se encontró el ID de la notificación')
+      return
+    }
+
+    // Payload con token e id de la notificación
+    const payload = {
+      token: token,
+      notificationId: selectedNotificationId,
+      timestamp: new Date().toISOString()
+    }
+
+    console.log('Payload para testeo:', payload)
+
+    // Cerrar modal después de enviar
+    handleCloseTokenModal()
   }
 
   const handleApplyUrl = async () => {
@@ -697,6 +744,89 @@ function App() {
         </div>
       )}
 
+      {/* Modal de Token Push */}
+      {isTokenModalOpen && (
+        <div className="modal-overlay" onClick={handleCloseTokenModal}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Testeo de Notificación Push</h2>
+              <button className="modal-close-btn" onClick={handleCloseTokenModal}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body">
+              <label className="modal-label">Ingrese su token push de notificaciones:</label>
+              <div className="modal-input-wrapper">
+                <span className="modal-input-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#9b59b6">
+                    <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-4 4v3c0 .22-.03.47-.07.7l-.1.65-.37.65c-.72 1.24-2.04 2-3.46 2s-2.74-.77-3.46-2l-.37-.64-.1-.65C8.03 15.47 8 15.22 8 15v-4c0-.23.03-.48.07-.7l.1-.65.37-.65c.3-.52.72-.97 1.21-1.31l.57-.39.68-.19c.3-.08.62-.11.95-.11.22 0 .43.02.65.06l.68.19.57.39c.49.35.91.79 1.21 1.31l.37.65.1.65c.04.22.07.47.07.7v1zm-6 2h4v2h-4v-2zm0-4h4v2h-4v-2z"/>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="modal-input"
+                  placeholder="Ej: fk3j2k1l3k2j3l2k3j2l3k2j3..."
+                  value={tokenInput}
+                  onChange={handleTokenChange}
+                  autoFocus
+                />
+              </div>
+              <div className="modal-info" style={{ marginTop: '1rem', padding: '0.8rem', background: '#f3e5f5', borderRadius: '8px', fontSize: '0.85rem', color: '#7d3c98' }}>
+                <strong>ID de notificación (Ejemplo):</strong> {selectedNotificationId}
+              </div>
+              <div className="modal-instructions" style={{ marginTop: '0.8rem', padding: '1rem', background: '#ffffff', border: '2px solid #e8daef', borderRadius: '8px' }}>
+                <div 
+                  onClick={() => setIsInstructionsExpanded(!isInstructionsExpanded)}
+                  style={{ 
+                    fontSize: '0.95rem', 
+                    fontWeight: '600', 
+                    color: '#8e44ad', 
+                    marginBottom: isInstructionsExpanded ? '0.5rem' : '0', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    userSelect: 'none'
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#8e44ad">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  ¿Qué puede hacer con este token?
+                  <span style={{ marginLeft: 'auto', fontSize: '1rem' }}>
+                    {isInstructionsExpanded ? '▲' : '▼'}
+                  </span>
+                </div>
+                {isInstructionsExpanded && (
+                  <ul style={{ margin: '0.5rem 0 0 1.5rem', padding: 0, color: '#7d3c98', fontSize: '0.85rem', lineHeight: '1.6' }}>
+                    <li style={{ marginBottom: '0.4rem' }}>
+                      <strong>Identificación del dispositivo:</strong> El token se asociará con el servidor y permitirá identificar de manera única el dispositivo que lo utiliza.
+                    </li>
+                    <li style={{ marginBottom: '0.4rem' }}>
+                      <strong>Envío de notificaciones:</strong> Una vez registrado, podrá recibir notificaciones push directamente en su dispositivo.
+                    </li>
+                    <li>
+                      <strong>Testeo de la funcionalidad:</strong> Este proceso permite validar que las notificaciones lleguen correctamente a su aplicación.
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-btn modal-btn-primary" onClick={handleSendToken} style={{ background: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)' }}>
+                <span className="btn-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                  </svg>
+                </span>
+                Enviar Token
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de filtro por sección */}
       {isFilterModalOpen && (
         <div className="modal-overlay" onClick={handleCloseFilterModal}>
@@ -1101,7 +1231,7 @@ function App() {
                   <th className="center-header">Estado<br />de envío</th>
                   <th className="center-header">Total de envíos</th>
                   <th>Usuarios</th>
-                  <th className="center-header">Acciones</th>
+                  <th className="center-header">Centro de envíos</th>
                 </tr>
               </thead>
               <tbody>
@@ -1184,23 +1314,43 @@ function App() {
                     <td className="number-cell">0</td>
                     <td>{pending.usuarios}</td>
                     <td className="actions-cell">
-                      <button 
-                        className="apply-btn"
-                        onClick={() => handleApplyPending(pending)}
-                        title="Aplicar URL y cargar notificaciones"
-                      >
-                        ↑
-                      </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => handleRemovePending(pending.id)}
-                        title="Eliminar notificación pendiente"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="white">
-                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                          <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                        </svg>
-                      </button>
+                      <div className="actions-container">
+                        <div className="actions-zone actions-zone-yellow">
+                          <div className="zone-buttons">
+                            <button 
+                              className="apply-btn"
+                              onClick={() => handleApplyPending(pending)}
+                              title="Aplicar URL y cargar notificaciones"
+                            >
+                              ↑
+                            </button>
+                            <button 
+                              className="delete-btn"
+                              onClick={() => handleRemovePending(pending.id)}
+                              title="Eliminar notificación pendiente"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="white">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="actions-zone actions-zone-purple">
+                          <div className="zone-label">TEST</div>
+                          <div className="zone-buttons">
+                            <button 
+                              className="test-btn"
+                              onClick={() => handleOpenTokenModal(pending.id)}
+                              title="Probar notificación"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white">
+                                <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-4 4v3c0 .22-.03.47-.07.7l-.1.65-.37.65c-.72 1.24-2.04 2-3.46 2s-2.74-.77-3.46-2l-.37-.64-.1-.65C8.03 15.47 8 15.22 8 15v-4c0-.23.03-.48.07-.7l.1-.65.37-.65c.3-.52.72-.97 1.21-1.31l.57-.39.68-.19c.3-.08.62-.11.95-.11.22 0 .43.02.65.06l.68.19.57.39c.49.35.91.79 1.21 1.31l.37.65.1.65c.04.22.07.47.07.7v1zm-6 2h4v2h-4v-2zm0-4h4v2h-4v-2z"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ))}
