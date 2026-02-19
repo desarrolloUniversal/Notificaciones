@@ -12,6 +12,7 @@ export interface AuthToken {
   expiresAt: number
   username: string
   grupos?: string[]
+  ou?: string
 }
 
 export interface AuthResponse {
@@ -21,6 +22,7 @@ export interface AuthResponse {
   expiresIn?: number // en segundos
   username: string
   grupos?: string[] // Grupos del usuario
+  ou?: string // Unidad organizacional
 }
 
 export interface AuthState {

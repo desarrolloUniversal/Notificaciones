@@ -11,6 +11,8 @@ interface AuthState {
   isAuthenticated: boolean
   expiresAt: number | null
   rememberMe: boolean
+  grupos: string[]
+  ou: string | null
   
   // Estado temporal (no se persiste)
   isLoading: boolean
@@ -48,6 +50,8 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       expiresAt: null,
       rememberMe: false,
+      grupos: [],
+      ou: null,
       isLoading: false,
       error: null,
 
@@ -64,6 +68,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             expiresAt: authToken.expiresAt,
             rememberMe: credentials.rememberMe || false,
+            grupos: authToken.grupos || [],
+            ou: authToken.ou || null,
             isLoading: false,
             error: null,
           })
@@ -77,6 +83,8 @@ export const useAuthStore = create<AuthState>()(
             username: null,
             isAuthenticated: false,
             expiresAt: null,
+            grupos: [],
+            ou: null,
             isLoading: false,
             error: errorMessage,
           })
@@ -92,6 +100,8 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           expiresAt: null,
           rememberMe: false,
+          grupos: [],
+          ou: null,
           error: null,
         })
         // Limpiar localStorage y sessionStorage
@@ -111,6 +121,8 @@ export const useAuthStore = create<AuthState>()(
             username: authToken.username,
             isAuthenticated: true,
             expiresAt: authToken.expiresAt,
+            grupos: authToken.grupos || [],
+            ou: authToken.ou || null,
             isLoading: false,
             error: null,
           })
@@ -145,6 +157,8 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         expiresAt: state.expiresAt,
         rememberMe: state.rememberMe,
+        grupos: state.grupos,
+        ou: state.ou,
         // NO persistir: isLoading, error (son temporales)
       }),
 
@@ -159,6 +173,8 @@ export const useAuthStore = create<AuthState>()(
           state.username = null
           state.isAuthenticated = false
           state.expiresAt = null
+          state.grupos = []
+          state.ou = null
           localStorage.removeItem(PERSISTENT_STORAGE_KEY)
           return
         }
@@ -177,6 +193,8 @@ export const useAuthStore = create<AuthState>()(
           state.isAuthenticated = false
           state.expiresAt = null
           state.rememberMe = false
+          state.grupos = []
+          state.ou = null
           localStorage.removeItem(PERSISTENT_STORAGE_KEY)
           sessionStorage.removeItem(SESSION_ACTIVE_KEY)
         }

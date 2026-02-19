@@ -32,16 +32,15 @@ export class AuthService {
         throw new Error('Error al procesar la respuesta del servidor')
       }
 
+      // Debug: mostrar datos recibidos de la API
+      console.log('🔍 API:', { grupos: data.grupos, ou: data.data?.find((item: string) => item === 'OU=TI') || null })
+
       if (!data || typeof data !== 'object') {
         throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
       }
 
-      // Validar respuesta: status=0 O debe tener usuario/nombre
-      if (data.status !== undefined) {
-        if (data.status !== 0) {
-          throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
-        }
-      } else if (!data.usuario && !data.nombre) {
+      // Validar respuesta exitosa
+      if (data.success !== true) {
         throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
       }
 
@@ -49,11 +48,25 @@ export class AuthService {
       if (data.grupos && Array.isArray(data.grupos)) {
         const hasNotificationsPushGroup = data.grupos.includes('Notificaciones Push')
         if (!hasNotificationsPushGroup) {
-          throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo usuarios autorizados pueden mandar notificaciones.')
+          throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo usuarios del grupo "Notificaciones Push" pueden acceder.')
         }
       } else {
         // Si no viene el campo grupos, rechazar por seguridad
         throw new Error('No se pudo verificar tus permisos. Contacta al administrador.')
+      }
+
+      // Validar que el usuario pertenezca a la unidad organizacional TI
+      // El OU viene en el array 'data' como string "OU=TI"
+      let userOU: string | null = null
+      if (data.data && Array.isArray(data.data)) {
+        const ouTI = data.data.find((item: string) => item === 'OU=TI')
+        if (ouTI) {
+          userOU = 'TI'
+        }
+      }
+
+      if (userOU !== 'TI') {
+        throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo usuarios de la unidad organizacional TI pueden acceder.')
       }
 
       const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
@@ -65,6 +78,7 @@ export class AuthService {
         expiresAt,
         username: credentials.username,
         grupos: data.grupos || [],
+        ou: userOU,
       }
     } catch (error) {
       if (error instanceof Error) {
