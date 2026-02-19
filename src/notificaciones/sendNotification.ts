@@ -2,6 +2,7 @@
 import type { NotificationSendPayload, PendingNotificationFromUrl } from './types/notificacionesTypes'
 import { useAuthStore } from '../auth/useAuthStore'
 import { AuthService } from '../auth/authService'
+import { getPushToken } from '../utils/pushTokenManager'
 
 const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url'
 
@@ -34,6 +35,12 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     userid: username,
     url: urlPath,
     content: notification.titulo  // Usa el título (puede estar modificado por el usuario)
+  }
+  
+  // Obtener token push del usuario (si existe)
+  const pushToken = getPushToken(username)
+  if (pushToken) {
+    payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
   }
   
   // Si es reenvío, agregar campo forward
@@ -89,9 +96,13 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
       'URL (path)': payload.url,
       'Title (sección)': payload.title,
       'Content (título)': payload.content,
-      'Forward': payload.forward
+      'Forward': payload.forward,
+      'Push Token': payload.id ? '✅ Enviando solo a tu dispositivo' : '⚠️ Sin token (envío masivo)'
     })
     console.log('JSON completo:', payload)
+    if (payload.id) {
+      console.log('🔐 Token Push:', payload.id)
+    }
     console.log('═══════════════════════════════════════════════════════\n')
     
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {

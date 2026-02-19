@@ -10,6 +10,7 @@ import type { PendingNotificationFromUrl } from './notificaciones/types/notifica
 import { useAuthStore } from './auth/useAuthStore'
 import { usePendingNotificationsStore } from './notificaciones/usePendingNotificationsStore'
 import { LoginModal } from './components/LoginModal'
+import { validatePushToken, savePushToken, getPushToken } from './utils/pushTokenManager'
 
 const getImageBySectionOrId = (thumbnail: string) => {
     if (thumbnail && thumbnail.startsWith('http')) {
@@ -29,6 +30,8 @@ function App() {
   const { 
     isAuthenticated, 
     username, 
+    ou,
+    grupos,
     logout
   } = useAuthStore()
 
@@ -75,6 +78,17 @@ function App() {
   const [tokenInput, setTokenInput] = useState('')
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
   const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false)
+
+  // Cargar token guardado del usuario al abrir el modal
+  useEffect(() => {
+    if (isTokenModalOpen && username) {
+      const userToken = getPushToken(username)
+      if (userToken) {
+        setTokenInput(userToken)
+      }
+    }
+  }, [isTokenModalOpen, username])
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -113,6 +127,8 @@ function App() {
   const handleLoginSuccess = () => {
     // Refrescar notificaciones después del login
     fetchNotifications(true)
+    // Mostrar modal de bienvenida con información de grupos
+    setIsWelcomeModalOpen(true)
   }
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +151,26 @@ function App() {
     setModalUrlInput(e.target.value)
   }
 
+  // Verificar si el usuario tiene permisos para testeo
+  const hasTestingPermissions = (): boolean => {
+    if (!isAuthenticated) return false
+
+    // Verificar OU=TI
+    const hasOU_TI = ou === 'TI'
+    
+    // Verificar que pertenece al grupo "Notificaciones Push"
+    const hasNotificationsPushGroup = grupos?.includes('Notificaciones Push') || false
+
+    return hasOU_TI && hasNotificationsPushGroup
+  }
+
   const handleOpenTokenModal = (notificationId: string) => {
+    // Validar permisos antes de abrir el modal
+    if (!hasTestingPermissions()) {
+      alert('❌ Acceso denegado\n\nNo tienes permisos para acceder a esta funcionalidad de testeo.\n\nRequieres:\n• OU=TI\n• Permiso de notificaciones push')
+      return
+    }
+
     setSelectedNotificationId(notificationId)
     setTokenInput('')
     setIsTokenModalOpen(true)
@@ -160,22 +195,30 @@ function App() {
       return
     }
 
-    if (!selectedNotificationId) {
-      alert('Error: No se encontró el ID de la notificación')
+    if (!username) {
+      alert('Error: No se pudo obtener el usuario. Por favor inicia sesión nuevamente.')
       return
     }
 
-    // Payload con token e id de la notificación
-    const payload = {
-      token: token,
-      notificationId: selectedNotificationId,
-      timestamp: new Date().toISOString()
+    // Validar formato del token: ExponentPushToken[...]
+    if (!validatePushToken(token)) {
+      alert('❌ Token inválido\n\nEl token debe tener el formato:\nExponentPushToken[TxQ9iZBVR5OEnNml20seN2]')
+      return
     }
 
-    console.log('Payload para testeo:', payload)
+    try {
+      // Guardar en localStorage (asociado al usuario)
+      savePushToken(username, token)
+      console.log('✅ Token guardado localmente para:', username)
 
-    // Cerrar modal después de enviar
-    handleCloseTokenModal()
+      alert(`✅ Token guardado exitosamente\n\nUsuario: ${username}\n\n🎯 Tus notificaciones ahora se enviarán únicamente a tu dispositivo móvil.\n\n💡 Al presionar "Enviar Nota", la notificación llegará solo a este token (no a todos los suscriptores).`)
+      
+      // Cerrar modal después de guardar
+      handleCloseTokenModal()
+    } catch (error) {
+      console.error('❌ Error al guardar token:', error)
+      alert('❌ Error al guardar el token. Inténtalo nuevamente.')
+    }
   }
 
   const handleApplyUrl = async () => {
@@ -749,14 +792,14 @@ function App() {
         <div className="modal-overlay" onClick={handleCloseTokenModal}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Testeo de Notificación Push</h2>
+              <h2 className="modal-title">📱 Token Push - Envío Personalizado</h2>
               <button className="modal-close-btn" onClick={handleCloseTokenModal}>
                 ✕
               </button>
             </div>
             <div className="modal-divider"></div>
             <div className="modal-body">
-              <label className="modal-label">Ingrese su token push de notificaciones:</label>
+              <label className="modal-label">Ingresa tu token para recibir notificaciones solo en tu dispositivo:</label>
               <div className="modal-input-wrapper">
                 <span className="modal-input-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#9b59b6">
@@ -766,14 +809,22 @@ function App() {
                 <input
                   type="text"
                   className="modal-input"
-                  placeholder="Ej: fk3j2k1l3k2j3l2k3j2l3k2j3..."
+                  placeholder="ExponentPushToken[TxQ9iZBVR5OEnNml20seN2]"
                   value={tokenInput}
                   onChange={handleTokenChange}
                   autoFocus
                 />
               </div>
+              {tokenInput && (
+                <div style={{ marginTop: '0.5rem', padding: '0.6rem', background: '#e8f5e9', borderRadius: '6px', fontSize: '0.8rem', color: '#2e7d32', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#4caf50">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  Token cargado - Se guardará en tu perfil
+                </div>
+              )}
               <div className="modal-info" style={{ marginTop: '1rem', padding: '0.8rem', background: '#f3e5f5', borderRadius: '8px', fontSize: '0.85rem', color: '#7d3c98' }}>
-                <strong>ID de notificación (Ejemplo):</strong> {selectedNotificationId}
+                <strong>Formato requerido:</strong> ExponentPushToken[código]
               </div>
               <div className="modal-instructions" style={{ marginTop: '0.8rem', padding: '1rem', background: '#ffffff', border: '2px solid #e8daef', borderRadius: '8px' }}>
                 <div 
@@ -793,7 +844,7 @@ function App() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#8e44ad">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                   </svg>
-                  ¿Qué puede hacer con este token?
+                  ¿Cómo funciona el envío personalizado?
                   <span style={{ marginLeft: 'auto', fontSize: '1rem' }}>
                     {isInstructionsExpanded ? '▲' : '▼'}
                   </span>
@@ -801,13 +852,13 @@ function App() {
                 {isInstructionsExpanded && (
                   <ul style={{ margin: '0.5rem 0 0 1.5rem', padding: 0, color: '#7d3c98', fontSize: '0.85rem', lineHeight: '1.6' }}>
                     <li style={{ marginBottom: '0.4rem' }}>
-                      <strong>Identificación del dispositivo:</strong> El token se asociará con el servidor y permitirá identificar de manera única el dispositivo que lo utiliza.
+                      <strong>🎯 Notificaciones personalizadas:</strong> Al guardar tu token, todas las notificaciones que envíes llegarán únicamente a tu dispositivo (no a todos los suscriptores).
                     </li>
                     <li style={{ marginBottom: '0.4rem' }}>
-                      <strong>Envío de notificaciones:</strong> Una vez registrado, podrá recibir notificaciones push directamente en su dispositivo.
+                      <strong>🔒 Asociado a tu perfil:</strong> El token se guarda localmente asociado a tu usuario ({username}).
                     </li>
                     <li>
-                      <strong>Testeo de la funcionalidad:</strong> Este proceso permite validar que las notificaciones lleguen correctamente a su aplicación.
+                      <strong>✅ Testeo seguro:</strong> Prueba las notificaciones sin afectar a otros usuarios.
                     </li>
                   </ul>
                 )}
@@ -821,6 +872,66 @@ function App() {
                   </svg>
                 </span>
                 Enviar Token
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Bienvenida con información de grupos */}
+      {isWelcomeModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsWelcomeModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <div className="modal-header" style={{ padding: '1rem 1.5rem' }}>
+              <h2 className="modal-title" style={{ fontSize: '1.3rem' }}>👋 Bienvenido, {username}</h2>
+              <button className="modal-close-btn" onClick={() => setIsWelcomeModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '1.2rem 1.5rem' }}>
+              <div style={{ marginBottom: '0.8rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.8rem' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#4caf50">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  <span style={{ fontSize: '0.95rem', fontWeight: '600', color: '#2c3e50' }}>
+                    Tus permisos activos:
+                  </span>
+                </div>
+                
+                {grupos?.includes('Notificaciones Push') && (
+                  <div style={{ padding: '0.8rem', background: 'linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%)', borderRadius: '8px', marginBottom: '0.6rem', border: '2px solid #ffd700' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#f39c12">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                      </svg>
+                      <strong style={{ color: '#f39c12', fontSize: '0.88rem' }}>Notificaciones Push</strong>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#7d6608' }}>
+                      Puedes enviar y gestionar notificaciones push
+                    </p>
+                  </div>
+                )}
+
+                {(ou === 'TI' || grupos?.some(g => g.toLowerCase().includes('desarrollo') || g.toLowerCase().includes('ti'))) && (
+                  <div style={{ padding: '0.8rem', background: 'linear-gradient(135deg, #e8daef 0%, #d4bfea 100%)', borderRadius: '8px', border: '2px solid #9b59b6' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#9b59b6">
+                        <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+                      </svg>
+                      <strong style={{ color: '#9b59b6', fontSize: '0.88rem' }}>Miembro de Desarrollo (TI)</strong>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#6a0dad' }}>
+                      Acceso a funciones de testeo y desarrollo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer" style={{ padding: '0.8rem 1.5rem' }}>
+              <button className="modal-btn modal-btn-primary" onClick={() => setIsWelcomeModalOpen(false)} style={{ padding: '10px 24px', fontSize: '0.9rem' }}>
+                Continuar
               </button>
             </div>
           </div>
