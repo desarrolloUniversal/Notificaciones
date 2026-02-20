@@ -10,7 +10,7 @@ import type { PendingNotificationFromUrl } from './notificaciones/types/notifica
 import { useAuthStore } from './auth/useAuthStore'
 import { usePendingNotificationsStore } from './notificaciones/usePendingNotificationsStore'
 import { LoginModal } from './components/LoginModal'
-import { validatePushToken, savePushToken, getPushToken } from './utils/pushTokenManager'
+import { validatePushToken, getPushToken } from './utils/pushTokenManager'
 
 const getImageBySectionOrId = (thumbnail: string) => {
     if (thumbnail && thumbnail.startsWith('http')) {
