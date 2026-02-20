@@ -189,36 +189,31 @@ function App() {
 
   const handleSendToken = () => {
     const token = tokenInput.trim()
-    
     if (!token) {
       alert('Por favor ingrese un token válido')
       return
     }
-
     if (!username) {
       alert('Error: No se pudo obtener el usuario. Por favor inicia sesión nuevamente.')
       return
     }
-
-    // Validar formato del token: ExponentPushToken[...]
-    if (!validatePushToken(token)) {
-      alert('❌ Token inválido\n\nEl token debe tener el formato:\nExponentPushToken[TxQ9iZBVR5OEnNml20seN2]')
-      return
-    }
-
-    try {
-      // Guardar en localStorage (asociado al usuario)
-      savePushToken(username, token)
-      console.log('✅ Token guardado localmente para:', username)
-
-      alert(`✅ Token guardado exitosamente\n\nUsuario: ${username}\n\n🎯 Tus notificaciones ahora se enviarán únicamente a tu dispositivo móvil.\n\n💡 Al presionar "Enviar Nota", la notificación llegará solo a este token (no a todos los suscriptores).`)
-      
-      // Cerrar modal después de guardar
-      handleCloseTokenModal()
-    } catch (error) {
-      console.error('❌ Error al guardar token:', error)
-      alert('❌ Error al guardar el token. Inténtalo nuevamente.')
-    }
+        // Validar formato del token: ExponentPushToken[...]
+        if (!validatePushToken(token)) {
+          alert('❌ Token inválido\n\nEl token debe tener el formato:\nExponentPushToken[TxQ9iZBVR5OEnNml20seN2]')
+          return
+        }
+        // Enviar notificación de test solo a este token
+        const pending = getPendingNotifications().find(n => n.id === selectedNotificationId)
+        if (!pending) {
+          alert('No se encontró la notificación pendiente para enviar.')
+          handleCloseTokenModal()
+          return
+        }
+        // Construir el payload personalizado
+        const payload = { ...pending, id: token }
+        sendNotification(payload)
+        alert('✅ Notificación enviada solo a este token\n\nUsuario: ' + username + '\n\nLa notificación de test se envió únicamente a tu dispositivo.')
+        handleCloseTokenModal()
   }
 
   const handleApplyUrl = async () => {
@@ -792,7 +787,7 @@ function App() {
         <div className="modal-overlay" onClick={handleCloseTokenModal}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">📱 Token Push - Envío Personalizado</h2>
+              <h2 className="modal-title">Envío de notificación personalizado</h2>
               <button className="modal-close-btn" onClick={handleCloseTokenModal}>
                 ✕
               </button>
@@ -871,7 +866,7 @@ function App() {
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                   </svg>
                 </span>
-                Enviar Token
+                Enviar notificación test
               </button>
             </div>
           </div>
