@@ -187,7 +187,7 @@ function App() {
   const handleOpenTokenModal = (notificationId: string) => {
     // Validar permisos antes de abrir el modal
     if (!hasTestingPermissions()) {
-      alert('❌ Acceso denegado\n\nNo tienes permisos para acceder a esta funcionalidad de testeo.\n\nRequieres:\n• OU=TI\n• Permiso de notificaciones push')
+      alert('❌ Acceso denegado\n\nNo tienes permisos para acceder a esta funcionalidad de testeo.\n\nSi consideras que deberías tener acceso, por favor contacta al administrador.')
       return
     }
 
