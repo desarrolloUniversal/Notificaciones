@@ -71,6 +71,26 @@ function App() {
   const [calendarDate, setCalendarDate] = useState(new Date())
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null)
   const [editingTitleValue, setEditingTitleValue] = useState('')
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
+  const [editingSectionValue, setEditingSectionValue] = useState('')
+    // Edición de sección
+    const handleStartEditSection = (id: string, currentSection: string) => {
+      setEditingSectionId(id)
+      setEditingSectionValue(currentSection)
+    }
+
+    const handleSaveSection = (id: string) => {
+      if (editingSectionValue.trim()) {
+        updatePendingNotification(id, { seccion: editingSectionValue.trim() })
+      }
+      setEditingSectionId(null)
+      setEditingSectionValue('')
+    }
+
+    const handleCancelEditSection = () => {
+      setEditingSectionId(null)
+      setEditingSectionValue('')
+    }
   const [isEditWarningModalOpen, setIsEditWarningModalOpen] = useState(false)
   const [isResendErrorModalOpen, setIsResendErrorModalOpen] = useState(false)
   const [isResendSuccessModalOpen, setIsResendSuccessModalOpen] = useState(false)
@@ -1366,7 +1386,50 @@ function App() {
                         />
                       )}
                     </td>
-                    <td>{pending.seccion}</td>
+                    <td className="section-cell editable-section-cell">
+                      {editingSectionId === pending.id ? (
+                        <div className="section-edit-container">
+                          <input
+                            type="text"
+                            className="section-edit-input"
+                            value={editingSectionValue}
+                            onChange={(e) => setEditingSectionValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveSection(pending.id)
+                              if (e.key === 'Escape') handleCancelEditSection()
+                            }}
+                            autoFocus
+                          />
+                          <div className="section-edit-actions">
+                            <button
+                              className="section-save-btn"
+                              onClick={() => handleSaveSection(pending.id)}
+                              title="Guardar sección"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              className="section-cancel-btn"
+                              onClick={handleCancelEditSection}
+                              title="Cancelar"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="section-display-container">
+                          <span className="section-text">{pending.seccion}</span>
+                          <button
+                            className="section-edit-btn"
+                            onClick={() => handleStartEditSection(pending.id, pending.seccion)}
+                            title="Editar sección"
+                          >
+                            ✎
+                          </button>
+                        </div>
+                      )}
+                    </td>
                     <td className="title-cell editable-title-cell">
                       {editingTitleId === pending.id ? (
                         <div className="title-edit-container">

@@ -1,3 +1,98 @@
+.editable-section-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.section-display-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-direction: column;
+}
+
+.section-edit-btn {
+  align-self: center;
+}
+.section-edit-btn {
+  background: #2c3e50;
+  border: 1px solid white;
+  color: white;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 1;
+  transform: scaleX(-1);
+}
+
+.section-display-container:hover .section-edit-btn {
+  opacity: 1;
+}
+
+.section-edit-btn:hover {
+  background: #34495e;
+  color: white;
+}
+
+.section-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-edit-input {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #d4af37;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-weight: 600;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.section-edit-input:focus {
+  border-color: #b8941f;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.section-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.section-save-btn,
+.section-cancel-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.section-save-btn {
+  background: #27ae60;
+  color: white;
+}
+
+.section-save-btn:hover {
+  background: #219150;
+}
+
+.section-cancel-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.section-cancel-btn:hover {
+  background: #c0392b;
+}
 #root {
   width: 100%;
   min-height: 100vh;
