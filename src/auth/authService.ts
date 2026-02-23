@@ -44,29 +44,52 @@ export class AuthService {
         throw new Error('La contraseña o usuario son incorrectos. Por favor verifica e intenta de nuevo.')
       }
 
-      // Validar que el usuario tenga el grupo "Notificaciones Push"
+
+      // Identificar tipo de usuario
+      // notif_push: grupo "Notificaciones Push"
+      // tester: grupo "Tester"
+      // sin permisos: ninguno de los anteriores
+      let tipoUsuario: 'notif_push' | 'tester' | 'sin_permisos' = 'sin_permisos';
       if (data.grupos && Array.isArray(data.grupos)) {
-        const hasNotificationsPushGroup = data.grupos.includes('Notificaciones Push')
-        if (!hasNotificationsPushGroup) {
-          throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo usuarios del grupo "Notificaciones Push" pueden acceder.')
+        if (data.grupos.includes('Tester')) {
+          tipoUsuario = 'tester';
+        } else if (data.grupos.includes('Notificaciones Push')) {
+          tipoUsuario = 'notif_push';
         }
       } else {
         // Si no viene el campo grupos, rechazar por seguridad
-        throw new Error('No se pudo verificar tus permisos. Contacta al administrador.')
+        throw new Error('No se pudo verificar tus permisos. Contacta al administrador.');
       }
 
-      // Validar que el usuario pertenezca a la unidad organizacional TI
-      // El OU viene en el array 'data' como string "OU=TI"
-      let userOU: string | null = null
-      if (data.data && Array.isArray(data.data)) {
-        const ouTI = data.data.find((item: string) => item === 'OU=TI')
-        if (ouTI) {
-          userOU = 'TI'
+      // Validación para notif_push
+      if (tipoUsuario === 'notif_push') {
+        // Si está en notif_push, acceso permitido
+        // No requiere OU adicional
+      } else if (tipoUsuario === 'tester') {
+        // Si es tester, primero debe pasar validación push (ya está aquí)
+        // Luego, debe pasar validación OU=TI
+        let userOU: string | null = null;
+        if (data.data && Array.isArray(data.data)) {
+          const ouTI = data.data.find((item: string) => item === 'OU=TI');
+          if (ouTI) {
+            userOU = 'TI';
+          }
         }
+        if (userOU !== 'TI') {
+          throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo testers de la unidad organizacional TI pueden acceder.');
+        }
+      } else {
+        // Sin permisos
+        throw new Error('No tienes permisos para acceder a esta aplicación.');
       }
 
-      if (userOU !== 'TI') {
-        throw new Error('No tienes permisos para acceder a esta aplicación.\n\nSolo usuarios de la unidad organizacional TI pueden acceder.')
+      // Para notif_push y tester (si llegó aquí, pasó las validaciones)
+      let userOU: string | undefined = undefined;
+      if (data.data && Array.isArray(data.data)) {
+        const ouTI = data.data.find((item: string) => item === 'OU=TI');
+        if (ouTI) {
+          userOU = 'TI';
+        }
       }
 
       const basicAuth = btoa(`${credentials.username}:${credentials.password}`)
