@@ -171,17 +171,11 @@ function App() {
     setModalUrlInput(e.target.value)
   }
 
-  // Verificar si el usuario tiene permisos para testeo
+  // Verificar si el usuario tiene permisos para testeo (solo Tester TI)
+  // Verificar si el usuario tiene permisos para testeo (solo Tester TI)
   const hasTestingPermissions = (): boolean => {
     if (!isAuthenticated) return false
-
-    // Verificar OU=TI
-    const hasOU_TI = ou === 'TI'
-    
-    // Verificar que pertenece al grupo "Notificaciones Push"
-    const hasNotificationsPushGroup = grupos?.includes('Notificaciones Push') || false
-
-    return hasOU_TI && hasNotificationsPushGroup
+    return ou === 'TI';
   }
 
   const handleOpenTokenModal = (notificationId: string) => {
@@ -915,30 +909,42 @@ function App() {
                   </span>
                 </div>
                 
-                {grupos?.includes('Notificaciones Push') && (
-                  <div style={{ padding: '0.8rem', background: 'linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%)', borderRadius: '8px', marginBottom: '0.6rem', border: '2px solid #ffd700' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#f39c12">
-                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-                      </svg>
-                      <strong style={{ color: '#f39c12', fontSize: '0.88rem' }}>Notificaciones Push</strong>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#7d6608' }}>
-                      Puedes enviar y gestionar notificaciones push
-                    </p>
-                  </div>
-                )}
+                {/* Rol: Notificaciones Push (solo si NO es tester) */}
+                {(() => {
+                  if (ou === 'TI') {
+                    console.log('[ROL] Usuario identificado como Tester (TI)', { username, ou, grupos });
+                    return null;
+                  }
+                  if (ou && ou !== 'TI') {
+                    console.log('[ROL] Usuario identificado como Notificaciones Push', { username, ou, grupos });
+                    return (
+                      <div style={{ padding: '0.8rem', background: 'linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%)', borderRadius: '8px', marginBottom: '0.6rem', border: '2px solid #ffd700' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#f39c12">
+                            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                          </svg>
+                          <strong style={{ color: '#f39c12', fontSize: '0.88rem' }}>Notificaciones Push</strong>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#7d6608' }}>
+                          Puedes enviar y gestionar notificaciones push
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
 
-                {(ou === 'TI' || grupos?.some(g => g.toLowerCase().includes('desarrollo') || g.toLowerCase().includes('ti'))) && (
+                {/* Rol: Tester TI */}
+                {ou === 'TI' && (
                   <div style={{ padding: '0.8rem', background: 'linear-gradient(135deg, #e8daef 0%, #d4bfea 100%)', borderRadius: '8px', border: '2px solid #9b59b6' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#9b59b6">
                         <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
                       </svg>
-                      <strong style={{ color: '#9b59b6', fontSize: '0.88rem' }}>Miembro de Desarrollo (TI)</strong>
+                      <strong style={{ color: '#9b59b6', fontSize: '0.88rem' }}>Tester (TI)</strong>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#6a0dad' }}>
-                      Acceso a funciones de testeo y desarrollo
+                      Acceso a funciones de testeo y desarrollo avanzadas
                     </p>
                   </div>
                 )}
