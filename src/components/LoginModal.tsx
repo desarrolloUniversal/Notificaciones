@@ -12,6 +12,7 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const { login, isLoading } = useAuthStore()
 
@@ -90,15 +91,49 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
 
             <div className="login-form-group">
               <label className="login-form-label">Contraseña:</label>
-              <input
-                type="password"
-                className="login-form-input"
-                placeholder="Ingrese su contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                autoComplete="new-password"
-              />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="login-form-input"
+                  placeholder="Ingrese su contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                  style={{ paddingRight: '38px' }}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    height: '24px',
+                    width: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    outline: 'none',
+                  }}
+                  onMouseDown={e => e.preventDefault()}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <ellipse cx="12" cy="12" rx="10" ry="7" stroke="#888" strokeWidth="2" fill="none"/>
+                      <circle cx="12" cy="12" r="3.5" stroke="#888" strokeWidth="2" fill="none"/>
+                      <line x1="4" y1="20" x2="20" y2="4" stroke="#888" strokeWidth="2.5"/>
+                    </svg>
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="12" rx="10" ry="7"/><circle cx="12" cy="12" r="3.5"/></svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="login-form-checkbox">
