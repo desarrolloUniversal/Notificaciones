@@ -1,3 +1,35 @@
+/* Botón Notificación Urgente */
+.urgente-btn {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #ceb03c 0%, #bfa13b 100%);
+  color: #fff;
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Segoe UI', sans-serif;
+  height: 44px;
+}
+
+.urgente-btn:hover {
+  background: linear-gradient(135deg, #bfa13b 0%, #ceb03c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+  border-color: #f0d16d;
+}
+
+.urgente-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
 .editable-section-cell {
   text-align: center;
   vertical-align: middle;
