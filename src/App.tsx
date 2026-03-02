@@ -764,19 +764,19 @@ function App() {
         </div>
       </div>
 
-      {/* Modal de configuración de URL */}
+      {/* Modal de URL */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={handleModalClose}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Configurar Endpoint Personalizado</h2>
+              <h2 className="modal-title">Ingresar URL del artículo</h2>
               <button className="modal-close-btn" onClick={handleModalClose}>
                 ✕
               </button>
             </div>
             <div className="modal-divider"></div>
             <div className="modal-body">
-              <label className="modal-label">URL del servidor:</label>
+              <label className="modal-label">Ingresa la URL del artículo:</label>
               <div className="modal-input-wrapper">
                 <span className="modal-input-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -788,7 +788,7 @@ function App() {
                 <input
                   type="text"
                   className="modal-input"
-                  placeholder="https://..."
+                  placeholder="https://www.eluniversal.com.mx/..."
                   value={modalUrlInput}
                   onChange={handleModalUrlChange}
                   autoFocus
@@ -796,9 +796,11 @@ function App() {
               </div>
             </div>
             <div className="modal-footer">
+              <button className="modal-btn modal-btn-secondary" onClick={handleModalClose}>
+                Cancelar
+              </button>
               <button className="modal-btn modal-btn-primary" onClick={handleApplyUrl}>
-                <span className="btn-icon">✓</span>
-                Agregar URL
+                Aplicar URL
               </button>
             </div>
           </div>
