@@ -100,6 +100,7 @@ function App() {
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
   const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false)
+  const [showUrgentForm, setShowUrgentForm] = useState(false)
 
   // Cargar token guardado del usuario al abrir el modal
   useEffect(() => {
@@ -159,6 +160,14 @@ function App() {
   const handleInputClick = () => {
     setModalUrlInput(urlInput)
     setIsModalOpen(true)
+  }
+
+  const handleUrgentNotificationClick = () => {
+    if (!isAuthenticated) {
+      alert('❌ Debes iniciar sesión para crear una notificación urgente')
+      return
+    }
+    setShowUrgentForm(!showUrgentForm)
   }
 
   const handleModalClose = () => {
@@ -711,7 +720,7 @@ function App() {
             <button
               className="urgente-btn"
               type="button"
-              onClick={handleInputClick}
+              onClick={handleUrgentNotificationClick}
               style={{ marginRight: '2px' }}
             >
               Notificación urgente
@@ -1379,12 +1388,25 @@ function App() {
               </thead>
               <tbody>
                 {/* Card para agregar nueva notificación urgente */}
-                {pendingNotifications.length > 0 && (
+                {showUrgentForm && (
                   <NuevaNotificacionCard
                     onGuardar={({ seccion, titulo, centroEnvios }) => {
-                      // Aquí puedes manejar el guardado, por ejemplo:
-                      // addPendingNotification({ seccion, titulo, centroEnvios, ...otrosDatos })
-                      alert(`Guardado:\nSección: ${seccion}\nTítulo: ${titulo}\nCentro de envíos: ${centroEnvios}`);
+                      // Crear notificación urgente manual
+                      const urgentNotification: PendingNotificationFromUrl = {
+                        id: `urgent-${Date.now()}`,
+                        seccion: seccion,
+                        titulo: titulo,
+                        subtitulo: '', // No tiene subtítulo porque es manual
+                        url: '', // No tiene URL porque es manual
+                        thumbnail: '', // Usará la imagen por defecto
+                        fechaEnvio: null, // Pendiente de envío
+                        estadoEnvio: 'Pendiente',
+                        usuarios: centroEnvios,
+                        timestamp: new Date().toISOString(),
+                      }
+                      addPendingNotification(urgentNotification)
+                      setShowUrgentForm(false) // Ocultar formulario después de guardar
+                      alert(`✅ Notificación urgente creada:\nSección: ${seccion}\nTítulo: ${titulo}\nCentro de envíos: ${centroEnvios}`)
                     }}
                   />
                 )}
