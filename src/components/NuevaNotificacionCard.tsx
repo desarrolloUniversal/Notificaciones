@@ -12,41 +12,109 @@ interface NuevaNotificacionCardProps {
   onTest?: (data: { seccion: string; titulo: string; usuarios: string }) => void;
   showTestButton?: boolean;
   username: string;
+  thumbnail?: string; // URL del thumbnail a mostrar
+  url?: string; // URL del artículo (opcional, si no hay se redirige a la home)
 }
 
-export const NuevaNotificacionCard: React.FC<NuevaNotificacionCardProps> = ({ onGuardar, onCancelar, onTest, showTestButton, username }) => {
+export const NuevaNotificacionCard: React.FC<NuevaNotificacionCardProps> = ({ onGuardar, onCancelar, onTest, showTestButton, username, thumbnail, url }) => {
   const [seccion, setSeccion] = useState('');
   const [titulo, setTitulo] = useState('');
+  const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
   const usuarios = username; // Auto-fill con el usuario actual
 
-  const handleGuardar = () => {
-    if (!seccion.trim() || !titulo.trim()) {
-      alert('Por favor completa todos los campos');
+  const handleGuardar = async () => {
+    // Validar campos requeridos
+    const faltantes: string[] = [];
+    if (!seccion.trim()) faltantes.push('Sección');
+    if (!titulo.trim()) faltantes.push('Título');
+    
+    if (faltantes.length > 0) {
+      setValidationMessage(`Los siguientes campos son requeridos: ${faltantes.join(', ')}`);
+      setIsValidationModalOpen(true);
       return;
     }
-    onGuardar({ seccion, titulo, usuarios });
-    setSeccion('');
-    setTitulo('');
+    
+    try {
+      // Llamar a onGuardar (puede ser async)
+      await onGuardar({ seccion, titulo, usuarios });
+      
+      // Limpiar campos solo si fue exitoso
+      setSeccion('');
+      setTitulo('');
+    } catch (error) {
+      // Si hay error, no limpiar los campos para que el usuario pueda intentar de nuevo
+      console.error('Error al guardar:', error);
+    }
   };
 
   const handleTest = () => {
-    if (!seccion.trim() || !titulo.trim()) {
-      alert('Por favor completa todos los campos antes de probar');
+    // Validar campos requeridos
+    const faltantes: string[] = [];
+    if (!seccion.trim()) faltantes.push('Sección');
+    if (!titulo.trim()) faltantes.push('Título');
+    
+    if (faltantes.length > 0) {
+      setValidationMessage(`Los siguientes campos son requeridos: ${faltantes.join(', ')}`);
+      setIsValidationModalOpen(true);
       return;
     }
+    
     if (onTest) {
       onTest({ seccion, titulo, usuarios });
     }
   };
 
   return (
-    <tr className="nueva-notificacion-row">
+    <>
+      {/* Modal de validación */}
+      {isValidationModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsValidationModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">Campos requeridos</h2>
+              <button className="modal-close-btn" onClick={() => setIsValidationModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: '#fff3cd', borderRadius: '8px', border: '2px solid #ffc107' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#ff9800">
+                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+                <div>
+                  <p style={{ margin: 0, fontSize: '1rem', color: '#856404', fontWeight: '600' }}>
+                    {validationMessage}
+                  </p>
+                  <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#856404' }}>
+                    Por favor completa todos los campos antes de guardar.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-btn modal-btn-primary" onClick={() => setIsValidationModalOpen(false)}>
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <tr className="nueva-notificacion-row">
       <td>
-        <img 
-          src="/notificaciones/src/assets/images/el_universal.png" 
-          alt="El Universal" 
-          className="thumbnail"
-        />
+        <a 
+          href={url || 'https://www.eluniversal.com.mx'} 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          <img 
+            src={thumbnail || ''} 
+            alt="El Universal" 
+            className="thumbnail"
+          />
+        </a>
       </td>
       <td>
         <input
@@ -54,15 +122,17 @@ export const NuevaNotificacionCard: React.FC<NuevaNotificacionCardProps> = ({ on
           placeholder="Escribe la sección"
           value={seccion}
           onChange={e => setSeccion(e.target.value)}
+          className="urgent-title-input"
           style={{ width: '140px', padding: '6px 8px', borderRadius: 6, border: '1.5px solid #d4af37', fontSize: '0.95rem', background: '#fffef5', color: '#8b7500' }}
         />
       </td>
       <td>
         <input
           type="text"
-          placeholder="Título"
+          placeholder="Escribe el título"
           value={titulo}
           onChange={e => setTitulo(e.target.value)}
+          className="urgent-title-input"
           style={{ width: '180px', padding: '6px 8px', borderRadius: 6, border: '1.5px solid #d4af37', fontSize: '0.95rem', background: '#fffef5', color: '#8b7500' }}
         />
       </td>
@@ -76,7 +146,7 @@ export const NuevaNotificacionCard: React.FC<NuevaNotificacionCardProps> = ({ on
       <td>{usuarios}</td>
       <td className="actions-cell">
         <div className="actions-container">
-          <div className="actions-zone actions-zone-yellow">
+          <div className="actions-zone actions-zone-urgent">
             <div className="zone-buttons">
               <button 
                 className="apply-btn"
@@ -116,5 +186,6 @@ export const NuevaNotificacionCard: React.FC<NuevaNotificacionCardProps> = ({ on
         </div>
       </td>
     </tr>
+    </>
   );
 };

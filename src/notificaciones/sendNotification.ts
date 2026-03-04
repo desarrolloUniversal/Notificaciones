@@ -15,12 +15,16 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
   const username = useAuthStore.getState().username || ''
   
   // Extraer solo el pathname de la URL (sin dominio)
-  let urlPath = notification.url
-  try {
-    const urlObj = new URL(notification.url)
-    urlPath = urlObj.pathname
-  } catch (error) {
-    // Si no es una URL válida, usar el valor original
+  // Para notificaciones urgentes sin URL, usar string vacío
+  let urlPath = notification.url || ''
+  
+  if (urlPath) {
+    try {
+      const urlObj = new URL(urlPath)
+      urlPath = urlObj.pathname
+    } catch (error) {
+      // Si no es una URL válida, usar el valor original
+    }
   }
   
   // Detectar si el título fue editado
@@ -115,11 +119,18 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     })
     
     if (!response.ok) {
-      await response.text()
+      const errorText = await response.text()
+      console.error('❌ Error en respuesta del API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
       throw new Error(`Error HTTP: ${response.status} ${response.statusText}`)
     }
     
     const data = await response.json()
+    
+    console.log('✅ RESPUESTA DEL API:', data)
     
     return {
       success: true,
@@ -137,8 +148,8 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
  * @returns true si la notificación puede ser enviada
  */
 export const canSendNotification = (notification: PendingNotificationFromUrl): boolean => {
-  // Validar que tenga los campos mínimos necesarios
-  if (!notification.url || !notification.titulo) {
+  // Validar que tenga al menos el título (campo mínimo necesario)
+  if (!notification.titulo) {
     return false
   }
   

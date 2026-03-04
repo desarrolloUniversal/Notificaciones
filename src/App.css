@@ -1176,6 +1176,12 @@ td a {
   box-shadow: 0 2px 8px rgba(239, 83, 80, 0.4);
   line-height: 1;
   padding: 0;
+  outline: none;
+}
+
+.add-urgente-btn:focus {
+  outline: 2px solid #dc3545;
+  outline-offset: 2px;
 }
 
 .add-urgente-btn:hover {
@@ -1224,6 +1230,14 @@ td a {
 
 .pending-notifications-table tbody tr.odd-row {
   background: #fffcf0;
+}
+
+.pending-notifications-table tbody tr.nueva-notificacion-row {
+  background: #ffe5e5 !important; /* Rojo claro para notificaciones urgentes */
+}
+
+.pending-notifications-table tbody tr.nueva-notificacion-row:hover {
+  background: #ffd6d6 !important;
 }
 
 .pending-notifications-table tbody tr:hover {
@@ -1303,6 +1317,12 @@ td a {
   padding: 1.2rem 0.8rem;
 }
 
+.actions-zone-urgent {
+  background: linear-gradient(135deg, #ffe5e5 0%, #ffcccc 100%);
+  border-bottom: 2px solid #dc3545;
+  padding: 1.2rem 0.8rem;
+}
+
 .actions-zone-purple {
   background: linear-gradient(135deg, #f3e5f5 0%, #e8daef 100%);
   padding: 0.5rem 0.8rem;
@@ -1319,6 +1339,10 @@ td a {
 
 .actions-zone-yellow .zone-label {
   color: #d68910;
+}
+
+.actions-zone-urgent .zone-label {
+  color: #c82333;
 }
 
 .actions-zone-purple .zone-label {
@@ -1987,6 +2011,63 @@ td a {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Placeholder italic para input de título urgente */
+.urgent-title-input::placeholder {
+  font-style: italic;
+}
+
+.urgent-title-input::-webkit-input-placeholder {
+  font-style: italic;
+}
+
+.urgent-title-input::-moz-placeholder {
+  font-style: italic;
+}
+
+.urgent-title-input:-ms-input-placeholder {
+  font-style: italic;
+}
+
+/* Animaciones para toast urgente */
+@keyframes urgentBounceIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes urgentPulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4), 0 0 0 0 rgba(220, 53, 69, 0.7);
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.6), 0 0 0 10px rgba(220, 53, 69, 0);
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+@keyframes urgentFadeOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
   }
 }
 

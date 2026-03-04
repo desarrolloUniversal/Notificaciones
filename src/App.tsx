@@ -60,6 +60,8 @@ function App() {
   const [loadingError, setLoadingError] = useState<string | null>(null)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+  const [showUrgentAlert, setShowUrgentAlert] = useState(false)
+  const [urgentAlertFading, setUrgentAlertFading] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set())
   const [isDateFilterModalOpen, setIsDateFilterModalOpen] = useState(false)
@@ -101,6 +103,10 @@ function App() {
   const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false)
   const [showUrgentForm, setShowUrgentForm] = useState(false)
+  const [isUrgentCreatedModalOpen, setIsUrgentCreatedModalOpen] = useState(false)
+  const [urgentCreatedData, setUrgentCreatedData] = useState({ seccion: '', titulo: '', usuarios: '' })
+  const [isTokenSentModalOpen, setIsTokenSentModalOpen] = useState(false)
+  const [tokenSentUsername, setTokenSentUsername] = useState('')
 
   // Cargar token guardado del usuario al abrir el modal
   useEffect(() => {
@@ -168,6 +174,19 @@ function App() {
       return
     }
     setShowUrgentForm(!showUrgentForm)
+    
+    // Mostrar alerta de notificación urgente
+    if (!showUrgentForm) {
+      setShowUrgentAlert(true)
+      setUrgentAlertFading(false)
+      setTimeout(() => {
+        setUrgentAlertFading(true)
+        setTimeout(() => {
+          setShowUrgentAlert(false)
+          setUrgentAlertFading(false)
+        }, 300)
+      }, 1200)
+    }
   }
 
   const handleUrgentFormTest = ({ seccion, titulo, usuarios }: { seccion: string; titulo: string; usuarios: string }) => {
@@ -264,7 +283,10 @@ function App() {
         // Construir el payload personalizado
         const payload = { ...pending, id: token }
         sendNotification(payload)
-        alert('✅ Notificación enviada solo a este token\n\nUsuario: ' + username + '\n\nLa notificación de test se envió únicamente a tu dispositivo.')
+        
+        // Mostrar modal de éxito
+        setTokenSentUsername(username)
+        setIsTokenSentModalOpen(true)
         handleCloseTokenModal()
   }
 
@@ -384,6 +406,8 @@ function App() {
     try {
       setLoadingProgress(30)
       await new Promise(resolve => setTimeout(resolve, 300))
+      
+      console.log('✅ [NOTIFICACIÓN DESDE URL - LISTA PARA ENVIAR]', pending);
       
       // Llamar al endpoint de envío
       await sendNotification(pending)
@@ -1357,6 +1381,40 @@ function App() {
         </div>
       )}
 
+      {/* Alerta de notificación urgente */}
+      {showUrgentAlert && (
+        <div style={{ 
+          position: 'fixed', 
+          top: '50%', 
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '25px',
+          fontSize: '0.85rem',
+          fontWeight: '700',
+          textTransform: 'uppercase',
+          letterSpacing: '1px',
+          boxShadow: '0 4px 12px rgba(220, 53, 69, 0.4)',
+          zIndex: 10000,
+          animation: urgentAlertFading 
+            ? 'urgentFadeOut 0.4s ease-out forwards' 
+            : 'urgentBounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), urgentPulse 1.5s ease-in-out 0.5s infinite',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          border: '2px solid rgba(255, 255, 255, 0.3)'
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Urgente</span>
+        </div>
+      )}
+
       {/* Banner de error */}
       {error && (
         <div className="error-banner">
@@ -1418,8 +1476,9 @@ function App() {
                 {/* Card para agregar nueva notificación urgente */}
                 {showUrgentForm && (
                   <NuevaNotificacionCard
-                    username={username || ''}
-                    onGuardar={({ seccion, titulo, usuarios }) => {
+                      username={username || ''}
+                      thumbnail={elUniversalLogo}
+                      onGuardar={async ({ seccion, titulo, usuarios }) => {
                       // Crear notificación urgente manual
                       const urgentNotification: PendingNotificationFromUrl = {
                         id: `urgent-${Date.now()}`,
@@ -1433,9 +1492,64 @@ function App() {
                         usuarios: usuarios,
                         timestamp: new Date().toISOString(),
                       }
-                      addPendingNotification(urgentNotification)
-                      setShowUrgentForm(false) // Ocultar formulario después de guardar
-                      alert(`✅ Notificación urgente creada:\nSección: ${seccion}\nTítulo: ${titulo}\nUsuarios: ${usuarios}`)
+                      
+                      console.log('✅ [NOTIFICACIÓN URGENTE - ENVIANDO DIRECTAMENTE]', urgentNotification);
+                      
+                      // Mostrar loading
+                      setIsLoadingNewNotification(true)
+                      setLoadingProgress(0)
+                      setLoadingError(null)
+                      
+                      try {
+                        setLoadingProgress(30)
+                        await new Promise(resolve => setTimeout(resolve, 300))
+                        
+                        // Enviar directamente sin pasar por pendientes
+                        await sendNotification(urgentNotification)
+                        
+                        console.log('✅ [NOTIFICACIÓN URGENTE ENVIADA EXITOSAMENTE]', {
+                          seccion,
+                          titulo,
+                          usuarios,
+                          enviada: true,
+                          timestamp: new Date().toISOString()
+                        });
+                        
+                        setLoadingProgress(70)
+                        await new Promise(resolve => setTimeout(resolve, 300))
+                        
+                        setLoadingProgress(100)
+                        await new Promise(resolve => setTimeout(resolve, 500))
+                        
+                        // Refrescar lista de notificaciones para que aparezca en la lista general
+                        fetchNotifications(true)
+                        
+                        setShowUrgentForm(false) // Ocultar formulario después de guardar
+                        
+                        // Mostrar alerta flotante de notificación urgente enviada
+                        setShowUrgentAlert(true)
+                        setUrgentAlertFading(false)
+                        setTimeout(() => {
+                          setUrgentAlertFading(true)
+                          setTimeout(() => {
+                            setShowUrgentAlert(false)
+                            setUrgentAlertFading(false)
+                          }, 300)
+                        }, 1200)
+                        
+                        // Mostrar modal de éxito
+                        setUrgentCreatedData({ seccion, titulo, usuarios })
+                        setIsUrgentCreatedModalOpen(true)
+                      } catch (error) {
+                        console.error('❌ Error al enviar notificación urgente:', error)
+                        const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+                        setLoadingError(errorMessage)
+                        alert(`❌ Error al enviar notificación urgente:\n\n${errorMessage}`)
+                        await new Promise(resolve => setTimeout(resolve, 2000))
+                      } finally {
+                        setIsLoadingNewNotification(false)
+                        setLoadingProgress(0)
+                      }
                     }}
                     onCancelar={() => setShowUrgentForm(false)}
                     onTest={handleUrgentFormTest}
@@ -1856,6 +1970,104 @@ function App() {
               <button 
                 className="modal-btn modal-btn-primary" 
                 onClick={() => setIsResendSuccessModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de notificación urgente creada */}
+      {isUrgentCreatedModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsUrgentCreatedModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#27ae60" strokeWidth="2" fill="none"/>
+                  <path d="M8 12L11 15L16 9" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                ¡Notificación urgente enviada!
+              </h2>
+              <button className="modal-close-btn" onClick={() => setIsUrgentCreatedModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '24px' }}>
+              <div style={{ background: '#f0f9ff', border: '2px solid #3498db', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <strong style={{ color: '#2c3e50', fontSize: '0.9rem' }}>Sección:</strong>
+                  <p style={{ margin: '4px 0 0 0', color: '#34495e', fontSize: '1rem' }}>{urgentCreatedData.seccion}</p>
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <strong style={{ color: '#2c3e50', fontSize: '0.9rem' }}>Título:</strong>
+                  <p style={{ margin: '4px 0 0 0', color: '#34495e', fontSize: '1rem' }}>{urgentCreatedData.titulo}</p>
+                </div>
+                <div>
+                  <strong style={{ color: '#2c3e50', fontSize: '0.9rem' }}>Usuario:</strong>
+                  <p style={{ margin: '4px 0 0 0', color: '#34495e', fontSize: '1rem' }}>{urgentCreatedData.usuarios}</p>
+                </div>
+              </div>
+              <p style={{ fontSize: '0.95rem', color: '#27ae60', textAlign: 'center', fontWeight: '600' }}>
+                ✅ La notificación ha sido <strong>enviada exitosamente</strong>
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#7f8c8d', textAlign: 'center', marginTop: '8px' }}>
+                Aparecerá en la lista de notificaciones enviadas
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn-primary" 
+                onClick={() => setIsUrgentCreatedModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de notificación enviada al token */}
+      {isTokenSentModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsTokenSentModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#27ae60" strokeWidth="2" fill="none"/>
+                  <path d="M8 12L11 15L16 9" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                ¡Notificación enviada!
+              </h2>
+              <button className="modal-close-btn" onClick={() => setIsTokenSentModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '24px' }}>
+              <div style={{ background: '#e8f5e9', border: '2px solid #4caf50', borderRadius: '8px', padding: '20px', marginBottom: '16px', textAlign: 'center' }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto 16px' }}>
+                  <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z" fill="#4caf50"/>
+                </svg>
+                <p style={{ fontSize: '1.1rem', color: '#2e7d32', fontWeight: '600', marginBottom: '8px' }}>
+                  Notificación de prueba enviada
+                </p>
+                <p style={{ fontSize: '0.95rem', color: '#4caf50' }}>
+                  Usuario: <strong>{tokenSentUsername}</strong>
+                </p>
+              </div>
+              <p style={{ fontSize: '0.95rem', color: '#7f8c8d', textAlign: 'center' }}>
+                La notificación de test se envió <strong>únicamente a tu dispositivo</strong>
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn-primary" 
+                onClick={() => setIsTokenSentModalOpen(false)}
                 style={{ width: '100%' }}
               >
                 Entendido
