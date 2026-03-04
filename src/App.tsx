@@ -170,6 +170,34 @@ function App() {
     setShowUrgentForm(!showUrgentForm)
   }
 
+  const handleUrgentFormTest = ({ seccion, titulo, usuarios }: { seccion: string; titulo: string; usuarios: string }) => {
+    // Validar permisos
+    if (!hasTestingPermissions()) {
+      alert('❌ Acceso denegado\n\nNo tienes permisos para acceder a esta funcionalidad de testeo.')
+      return
+    }
+    
+    // Crear notificación temporal para prueba
+    const tempNotification: PendingNotificationFromUrl = {
+      id: `temp-test-${Date.now()}`,
+      seccion: seccion,
+      titulo: titulo,
+      subtitulo: '',
+      url: '',
+      thumbnail: '',
+      fechaEnvio: null,
+      estadoEnvio: 'Pendiente',
+      usuarios: usuarios,
+      timestamp: new Date().toISOString(),
+    }
+    
+    // Agregar temporalmente a la lista
+    addPendingNotification(tempNotification)
+    
+    // Abrir modal de token para esta notificación
+    handleOpenTokenModal(tempNotification.id)
+  }
+
   const handleModalClose = () => {
     setIsModalOpen(false)
     // ✅ Limpiar ambos campos al cerrar sin guardar (descartar)
@@ -716,16 +744,6 @@ function App() {
       <div className="header-section">
         <h1 className="page-title">Notificaciones</h1>
         <div className="controls-group">
-          {isAuthenticated && (
-            <button
-              className="urgente-btn"
-              type="button"
-              onClick={handleUrgentNotificationClick}
-              style={{ marginRight: '2px' }}
-            >
-              Notificación urgente
-            </button>
-          )}
           <div className="url-input-container">
             <span className="url-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1370,6 +1388,16 @@ function App() {
               </svg>
             </span>
             <span className="pending-title">NOTIFICACIONES PENDIENTES</span>
+            {isAuthenticated && (
+              <button
+                className="add-urgente-btn"
+                type="button"
+                onClick={handleUrgentNotificationClick}
+                title="Crear notificación urgente"
+              >
+                +
+              </button>
+            )}
             <span className="pending-count">{pendingNotifications.length}</span>
           </div>
           <div className="table-wrapper pending-table-wrapper">
@@ -1390,7 +1418,8 @@ function App() {
                 {/* Card para agregar nueva notificación urgente */}
                 {showUrgentForm && (
                   <NuevaNotificacionCard
-                    onGuardar={({ seccion, titulo, centroEnvios }) => {
+                    username={username || ''}
+                    onGuardar={({ seccion, titulo, usuarios }) => {
                       // Crear notificación urgente manual
                       const urgentNotification: PendingNotificationFromUrl = {
                         id: `urgent-${Date.now()}`,
@@ -1401,13 +1430,16 @@ function App() {
                         thumbnail: '', // Usará la imagen por defecto
                         fechaEnvio: null, // Pendiente de envío
                         estadoEnvio: 'Pendiente',
-                        usuarios: centroEnvios,
+                        usuarios: usuarios,
                         timestamp: new Date().toISOString(),
                       }
                       addPendingNotification(urgentNotification)
                       setShowUrgentForm(false) // Ocultar formulario después de guardar
-                      alert(`✅ Notificación urgente creada:\nSección: ${seccion}\nTítulo: ${titulo}\nCentro de envíos: ${centroEnvios}`)
+                      alert(`✅ Notificación urgente creada:\nSección: ${seccion}\nTítulo: ${titulo}\nUsuarios: ${usuarios}`)
                     }}
+                    onCancelar={() => setShowUrgentForm(false)}
+                    onTest={handleUrgentFormTest}
+                    showTestButton={ou === 'TI'}
                   />
                 )}
                 {pendingNotifications.map((pending, index) => (

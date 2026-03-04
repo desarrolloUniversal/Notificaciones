@@ -1159,6 +1159,35 @@ td a {
   flex: 1;
 }
 
+.add-urgente-btn {
+  background: #ef5350;
+  color: #ffffff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(239, 83, 80, 0.4);
+  line-height: 1;
+  padding: 0;
+}
+
+.add-urgente-btn:hover {
+  background: #f44336;
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.6);
+}
+
+.add-urgente-btn:active {
+  transform: scale(1) rotate(90deg);
+}
+
 .pending-count {
   background: #c9a12b;
   color: #ffffff;
