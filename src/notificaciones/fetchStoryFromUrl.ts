@@ -69,7 +69,7 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
       
       throw new Error(errorMessage)
     }
-    console.log('✅ [fetchStoryFromUrl] Respuesta :', responseText)
+    
     // Parsear JSON
     let data: StoryApiResponse
     try {
@@ -79,8 +79,19 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
       throw new Error(`Error al parsear respuesta JSON: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`)
     }
     
-
-    console.log('✅ [fetchStoryFromUrl] Story obtenido exitosamente:', data)
+    // Log simplificado con información clave
+    const headlinesBasic = data.headlines_basic ? JSON.parse(data.headlines_basic) : {}
+    const titulo = headlinesBasic.basic || 'Sin título'
+    const taxonomy = data.taxonomy ? JSON.parse(data.taxonomy) : {}
+    const seccion = taxonomy.primary_section?.name || 'Sin sección'
+    
+    console.log(`✅ [fetchStoryFromUrl] Story obtenido:`, {
+      id: data.idarticulo,
+      titulo: titulo,
+      seccion: seccion,
+      url: websiteUrl
+    })
+    
     return data
   } catch (error) {
     console.error('❌ [fetchStoryFromUrl] Error al obtener story:', error)

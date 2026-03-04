@@ -46,10 +46,7 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
       addPendingNotification: (notification) => {
         const { currentUser, pendingNotificationsByUser } = get()
         
-        if (!currentUser) {
-          console.warn('⚠️ [PendingStore] No hay usuario autenticado')
-          return
-        }
+        if (!currentUser) return
 
         const userNotifications = pendingNotificationsByUser[currentUser] || []
         
@@ -116,7 +113,6 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
               [currentUser]: updatedNotifications,
             }
           })
-          console.log('✅ [PendingStore] Notificaciones antiguas actualizadas con usuario:', currentUser)
         }
       },
 

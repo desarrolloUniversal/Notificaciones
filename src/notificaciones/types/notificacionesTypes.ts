@@ -87,12 +87,12 @@ export interface PendingNotificationFromUrl {
  */
 export interface NotificationSendPayload {
   site: string
-  idarticulo?: string
+  idarticulo: string // requerido: ID del artículo para identificarlo en el backend
   link: string
   userid: string
   id?: string        // opcional: ExponentPushToken del usuario - Se incluye automáticamente si el usuario guardó su token, enviando la notificación solo a su dispositivo. Si se omite, se envía a todos los suscriptores.
   url?: string       // opcional: URL del artículo
-  title?: string     // opcional: Título de la notificación
-  content?: string   // opcional: Contenido de la notificación
-  forward?: boolean  // opcional: Indica si es un reenvío
+  title?: string     // opcional: Título de la notificación (sección)
+  content?: string   // opcional: Contenido de la notificación (título del artículo)
+  forward: boolean   // requerido: true si es reenvío, false si es notificación nueva
 }

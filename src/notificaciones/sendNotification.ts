@@ -34,7 +34,9 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     link: 'a Nota',
     userid: username,
     url: urlPath,
-    content: notification.titulo  // Usa el título (puede estar modificado por el usuario)
+    content: notification.titulo,  // Usa el título (puede estar modificado por el usuario)
+    forward: notification.isResend ? true : false,  // true si es reenvío, false si es nueva
+    idarticulo: notification.originalId || notification.id  // ID del artículo (usa original si es reenvío)
   }
   
   // Obtener token push del usuario (si existe)
@@ -43,16 +45,9 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
   }
   
-  // Si es reenvío, agregar campo forward
-  if (notification.isResend) {
-    payload.forward = true
-  }
-  
-  // Si el título NO fue editado, incluir title e idarticulo
+  // Si el título NO fue editado, incluir title (sección)
   if (!tituloEditado) {
     payload.title = notification.seccion
-    // Usar originalId si existe (reenvío), sino usar id normal
-    //payload.idarticulo = notification.originalId || notification.id
   }
   
   return payload
@@ -86,24 +81,18 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     const token = useAuthStore.getState().token
     const authHeaders = AuthService.getAuthHeader(token)
     
-    console.log('\n═══════════════════════════════════════════════════════')
     console.log('📡 DATOS QUE SE SUBEN AL API:')
-    console.log('═══════════════════════════════════════════════════════')
     console.table({
       'Site': payload.site,
       'Link': payload.link,
       'Usuario': payload.userid,
+      'ID Artículo': payload.idarticulo,
       'URL (path)': payload.url,
       'Title (sección)': payload.title,
       'Content (título)': payload.content,
-      'Forward': payload.forward,
+      'Forward': String(payload.forward),
       'Push Token': payload.id ? '✅ Enviando solo a tu dispositivo' : '⚠️ Sin token (envío masivo)'
     })
-    console.log('JSON completo:', payload)
-    if (payload.id) {
-      console.log('🔐 Token Push:', payload.id)
-    }
-    console.log('═══════════════════════════════════════════════════════\n')
     
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',

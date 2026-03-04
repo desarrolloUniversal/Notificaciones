@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
 import { fetchStoryFromUrl } from './notificaciones/fetchStoryFromUrl'
 import { parseStoryToNotification } from './notificaciones/parseStoryToNotification'
-import { sendNotification, canSendNotification } from './notificaciones/sendNotification'
+import { sendNotification, canSendNotification, prepareSendPayload } from './notificaciones/sendNotification'
 import { validateArticleUrl, analyzeUrl } from './notificaciones/validateUrl'
 import type { PendingNotificationFromUrl } from './notificaciones/types/notificacionesTypes'
 import { useAuthStore } from './auth/useAuthStore'
+import { AuthService } from './auth/authService'
 import { usePendingNotificationsStore } from './notificaciones/usePendingNotificationsStore'
 import { LoginModal } from './components/LoginModal'
 import { validatePushToken, getPushToken } from './utils/pushTokenManager'
@@ -31,7 +32,6 @@ function App() {
     isAuthenticated, 
     username, 
     ou,
-    grupos,
     logout
   } = useAuthStore()
 
@@ -201,7 +201,7 @@ function App() {
     setTokenInput(e.target.value)
   }
 
-  const handleSendToken = () => {
+  const handleSendToken = async () => {
     const token = tokenInput.trim()
     if (!token) {
       alert('Por favor ingrese un token válido')
@@ -223,11 +223,58 @@ function App() {
           handleCloseTokenModal()
           return
         }
-        // Construir el payload personalizado
-        const payload = { ...pending, id: token }
-        sendNotification(payload)
-        alert('✅ Notificación enviada solo a este token\n\nUsuario: ' + username + '\n\nLa notificación de test se envió únicamente a tu dispositivo.')
-        handleCloseTokenModal()
+        
+        try {
+          // Preparar el payload correctamente con prepareSendPayload
+          const basePayload = prepareSendPayload(pending)
+          
+          // Sobrescribir el token con el token manual del usuario
+          const payload = {
+            ...basePayload,
+            id: token  // Token push para envío dirigido
+          }
+          
+          // Console detallado para debug
+          console.log('🔧 DEBUG - DATOS ENVIADOS AL API:')
+          console.table({
+            'Site': payload.site,
+            'Link': payload.link,
+            'Usuario': payload.userid,
+            'ID Artículo': payload.idarticulo,
+            'URL (path)': payload.url,
+            'Title (sección)': payload.title,
+            'Content (título)': payload.content,
+            'Forward': String(payload.forward),
+            'Token Push (TEST)': payload.id
+          })
+          
+          // Enviar directamente usando fetch (sin pasar por sendNotification)
+          const authToken = useAuthStore.getState().token
+          const authHeaders = AuthService.getAuthHeader(authToken)
+          
+          const response = await fetch('https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url', {
+            method: 'POST',
+            headers: {
+              ...authHeaders,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          })
+          
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`)
+          }
+          
+          // Remover de pendientes después de envío exitoso
+          removePendingNotification(pending.id)
+          
+          alert('✅ Notificación enviada solo a este token\n\nUsuario: ' + username + '\n\nLa notificación de test se envió únicamente a tu dispositivo.')
+          handleCloseTokenModal()
+        } catch (error) {
+          console.error('❌ Error al enviar notificación de test:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          alert(`❌ Error al enviar notificación:\n\n${errorMessage}`)
+        }
   }
 
   const handleApplyUrl = async () => {
@@ -912,11 +959,9 @@ function App() {
                 {/* Rol: Notificaciones Push (solo si NO es tester) */}
                 {(() => {
                   if (ou === 'TI') {
-                    console.log('[ROL] Usuario identificado como Tester (TI)', { username, ou, grupos });
                     return null;
                   }
                   if (ou && ou !== 'TI') {
-                    console.log('[ROL] Usuario identificado como Notificaciones Push', { username, ou, grupos });
                     return (
                       <div style={{ padding: '0.8rem', background: 'linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%)', borderRadius: '8px', marginBottom: '0.6rem', border: '2px solid #ffd700' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
