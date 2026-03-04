@@ -11,7 +11,7 @@ import { useAuthStore } from './auth/useAuthStore'
 import { AuthService } from './auth/authService'
 import { usePendingNotificationsStore } from './notificaciones/usePendingNotificationsStore'
 import { LoginModal } from './components/LoginModal'
-import { validatePushToken, getPushToken } from './utils/pushTokenManager'
+import { validatePushToken } from './utils/pushTokenManager'
 
 const getImageBySectionOrId = (thumbnail: string) => {
     if (thumbnail && thumbnail.startsWith('http')) {
@@ -94,21 +94,12 @@ function App() {
   const [isEditWarningModalOpen, setIsEditWarningModalOpen] = useState(false)
   const [isResendErrorModalOpen, setIsResendErrorModalOpen] = useState(false)
   const [isResendSuccessModalOpen, setIsResendSuccessModalOpen] = useState(false)
+  const [isTestSuccessModalOpen, setIsTestSuccessModalOpen] = useState(false)
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [tokenInput, setTokenInput] = useState('')
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
   const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false)
-
-  // Cargar token guardado del usuario al abrir el modal
-  useEffect(() => {
-    if (isTokenModalOpen && username) {
-      const userToken = getPushToken(username)
-      if (userToken) {
-        setTokenInput(userToken)
-      }
-    }
-  }, [isTokenModalOpen, username])
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -268,8 +259,9 @@ function App() {
           // Remover de pendientes después de envío exitoso
           removePendingNotification(pending.id)
           
-          alert('✅ Notificación enviada solo a este token\n\nUsuario: ' + username + '\n\nLa notificación de test se envió únicamente a tu dispositivo.')
+          // Mostrar modal de éxito
           handleCloseTokenModal()
+          setIsTestSuccessModalOpen(true)
         } catch (error) {
           console.error('❌ Error al enviar notificación de test:', error)
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
@@ -1826,6 +1818,44 @@ function App() {
               <button 
                 className="modal-btn modal-btn-primary" 
                 onClick={() => setIsResendSuccessModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Test Exitoso */}
+      {isTestSuccessModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsTestSuccessModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#27ae60" strokeWidth="2" fill="none"/>
+                  <path d="M8 12L11 15L16 9" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                ¡Enviada!
+              </h2>
+              <button className="modal-close-btn" onClick={() => setIsTestSuccessModalOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider"></div>
+            <div className="modal-body" style={{ padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '1.1rem', lineHeight: '1.6', color: '#2c3e50', marginBottom: '8px' }}>
+                Notificación de <strong>test enviada exitosamente</strong>.
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                La notificación se envió únicamente a tu dispositivo.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-btn modal-btn-primary" 
+                onClick={() => setIsTestSuccessModalOpen(false)}
                 style={{ width: '100%' }}
               >
                 Entendido
