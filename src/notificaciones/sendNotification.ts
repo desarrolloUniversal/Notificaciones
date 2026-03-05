@@ -23,7 +23,7 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
       url: '/urgente',  // URL genérica para urgentes
       content: notification.titulo,  // Título de la urgente
       title: notification.seccion,   // Sección de la urgente
-      forward: false,
+      forward: "false",  // string requerido por tipo
       idarticulo: notification.id  // ID generado de la urgente
     }
     
@@ -50,15 +50,29 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
                         notification.originalTitulo && 
                         notification.titulo !== notification.originalTitulo
   
-  // Construir payload base
+  // Generar idarticulo único para cada envío
+  // Si es reenvío, crear nuevo ID basado en timestamp para evitar duplicados
+  let idArticulo: string
+  
+  if (notification.isResend) {
+    // ESTRATEGIA: Generar nuevo idarticulo para reenvíos
+    // El backend rechaza duplicados, así que creamos uno único
+    const timestamp = Date.now()
+    const urlHash = urlPath.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20)
+    idArticulo = `${urlHash}-resend-${timestamp}`
+  } else {
+    // Para notificaciones nuevas, usar el ID existente
+    idArticulo = notification.id
+  }
+  
   const payload: NotificationSendPayload = {
     site: 'eluniversal',
     link: 'a Nota',
     userid: username,
     url: urlPath,
     content: notification.titulo,  // Usa el título (puede estar modificado por el usuario)
-    forward: notification.isResend ? true : false,  // true si es reenvío, false si es nueva
-    idarticulo: notification.originalId || notification.id  // ID del artículo (usa original si es reenvío)
+    forward: "false",  // Siempre "false" - cada envío es tratado como nuevo
+    idarticulo: idArticulo  // ID único para cada envío
   }
   
   // Obtener token push del usuario (si existe)
@@ -67,8 +81,9 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
   }
   
-  // Si el título NO fue editado, incluir title (sección)
-  if (!tituloEditado) {
+  // Incluir sección (title) si el título no fue editado O si es un reenvío
+  // Para reenvíos, siempre incluir la sección para que llegue completa
+  if (!tituloEditado || notification.isResend) {
     payload.title = notification.seccion
   }
   
@@ -99,6 +114,8 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
   try {
     const payload = prepareSendPayload(notification)
     
+    console.log('📦 Payload generado para envío:', JSON.stringify(payload, null, 2))
+    
     // Obtener headers de autenticación
     const token = useAuthStore.getState().token
     const authHeaders = AuthService.getAuthHeader(token)
@@ -113,11 +130,11 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     })
     
     if (!response.ok) {
-      await response.text()
       throw new Error(`Error HTTP: ${response.status} ${response.statusText}`)
     }
     
     const data = await response.json()
+    console.log('📨 Respuesta del servidor:', data)
     
     return {
       success: true,
@@ -154,8 +171,10 @@ export const canSendNotification = (notification: PendingNotificationFromUrl): b
     }
   }
   
-  // Validar que esté en estado pendiente
-  if (notification.estadoEnvio !== 'Pendiente') {
+  // Validar que esté en un estado válido para envío/reenvío
+  if (notification.estadoEnvio !== 'Pendiente' && 
+      notification.estadoEnvio !== 'Enviada' && 
+      notification.estadoEnvio !== 'Reenviada') {
     return false
   }
   

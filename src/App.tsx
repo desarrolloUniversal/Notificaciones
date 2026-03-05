@@ -11,7 +11,7 @@ import { useAuthStore } from './auth/useAuthStore'
 import { AuthService } from './auth/authService'
 import { usePendingNotificationsStore } from './notificaciones/usePendingNotificationsStore'
 import { LoginModal } from './components/LoginModal'
-import { validatePushToken } from './utils/pushTokenManager'
+import { validatePushToken, savePushToken } from './utils/pushTokenManager'
 
 const getImageBySectionOrId = (thumbnail: string) => {
     if (thumbnail && thumbnail.startsWith('http')) {
@@ -175,8 +175,8 @@ function App() {
       return
     }
     
-    // 1. Generar ID único
-    const urgentId = `urgent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // 1. Generar ID único con crypto.randomUUID() (sin colisiones)
+    const urgentId = `urgent-${crypto.randomUUID()}`
     
     // 2. Crear objeto de notificación pendiente con datos por defecto
     const urgentNotification: PendingNotificationFromUrl = {
@@ -299,6 +299,7 @@ function App() {
 
   const handleSendToken = async () => {
     const token = tokenInput.trim()
+    
     if (!token) {
       alert('Por favor ingrese un token válido')
       return
@@ -307,28 +308,33 @@ function App() {
       alert('Error: No se pudo obtener el usuario. Por favor inicia sesión nuevamente.')
       return
     }
-        // Validar formato del token: ExponentPushToken[...]
-        if (!validatePushToken(token)) {
-          alert('❌ Token inválido\n\nEl token debe tener el formato:\nExponentPushToken[TxQ9iZBVR5OEnNml20seN2]')
-          return
-        }
-        // Enviar notificación de test solo a este token
-        const pending = getPendingNotifications().find(n => n.id === selectedNotificationId)
-        if (!pending) {
-          alert('No se encontró la notificación pendiente para enviar.')
-          handleCloseTokenModal()
-          return
-        }
-        
-        try {
-          // Preparar el payload correctamente con prepareSendPayload
-          const basePayload = prepareSendPayload(pending)
-          
-          // Sobrescribir el token con el token manual del usuario
-          const payload = {
-            ...basePayload,
-            id: token  // Token push para envío dirigido
-          }
+    
+    // Validar formato del token: ExponentPushToken[...]
+    if (!validatePushToken(token)) {
+      alert('❌ Token inválido\n\nEl token debe tener el formato:\nExponentPushToken[TxQ9iZBVR5OEnNml20seN2]')
+      return
+    }
+    
+    // Guardar el token para futuros envíos
+    savePushToken(username, token)
+    
+    // Enviar notificación de test solo a este token
+    const pending = getPendingNotifications().find(n => n.id === selectedNotificationId)
+    if (!pending) {
+      alert('No se encontró la notificación pendiente para enviar.')
+      handleCloseTokenModal()
+      return
+    }
+    
+    try {
+      // Preparar el payload correctamente con prepareSendPayload
+      const basePayload = prepareSendPayload(pending)
+      
+      // Sobrescribir el token con el token manual del usuario
+      const payload = {
+        ...basePayload,
+        id: token  // Token push MANUAL para envío dirigido
+      }
           
           // Enviar directamente usando fetch (sin pasar por sendNotification)
           const authToken = useAuthStore.getState().token
@@ -347,6 +353,8 @@ function App() {
             throw new Error(`Error HTTP: ${response.status}`)
           }
           
+          await response.json()
+          
           // Remover de pendientes después de envío exitoso
           removePendingNotification(pending.id)
           
@@ -354,7 +362,6 @@ function App() {
           handleCloseTokenModal()
           setIsTestSuccessModalOpen(true)
         } catch (error) {
-          console.error('❌ Error al enviar notificación de test:', error)
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
           alert(`❌ Error al enviar notificación:\n\n${errorMessage}`)
         }
@@ -546,13 +553,23 @@ function App() {
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // Remover de pendientes después de envío exitoso
-      removePendingNotification(pending.id)
+      // Actualizar estado en lugar de eliminar (permite reenvíos múltiples)
+      const now = new Date().toISOString()
+      const nuevoEstado = 'Enviada'
+      const nuevoContador = (pending.resendCount || 0) + 1
+      
+      updatePendingNotification(pending.id, {
+        estadoEnvio: nuevoEstado,
+        fechaEnvio: now,
+        resendCount: nuevoContador
+      })
       
       // Refrescar lista de notificaciones
-      fetchNotifications(true)
+      await fetchNotifications(true)
     } catch (error) {
-      console.error('❌ Error al enviar notificación:', error)
+      console.error('❌ Error al enviar notificación')
+      console.error('Detalles:', error)
+      console.log('=====================================\n')
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       setLoadingError(errorMessage)
       alert(`❌ Error al enviar notificación:\n\n${errorMessage}`)
@@ -858,8 +875,11 @@ function App() {
       return
     }
 
+    // Estrategia: Crear una NUEVA notificación editable con los datos de la original
+    // El usuario puede modificar título/sección antes de enviar
+    // Se generará un nuevo idarticulo al enviar para evitar duplicados
     const pendingNotification: PendingNotificationFromUrl = {
-      id: `${notification.id}-${Date.now()}`,
+      id: `resend-${crypto.randomUUID()}`,  // ID único local
       thumbnail: notification.thumbnail,
       seccion: notification.seccion,
       titulo: notification.titulo,
@@ -869,9 +889,9 @@ function App() {
       fechaEnvio: null,
       usuarios: username,
       timestamp: new Date().toISOString(),
-      isResend: true,  // Marcar como reenvío
-      originalTitulo: notification.titulo,  // Guardar título original
-      originalId: notification.id  // Guardar ID original del artículo
+      isResend: true,  // Marca visual para la UI (mostrar con estilo diferente)
+      originalTitulo: notification.titulo,  // Referencia para detectar si fue editado
+      originalId: notification.id  // Referencia del artículo original (solo informativo)
     }
     
     addPendingNotification(pendingNotification)

@@ -72,14 +72,15 @@ export interface PendingNotificationFromUrl {
   titulo: string
   subtitulo: string
   url: string
-  estadoEnvio: 'Pendiente'
-  fechaEnvio: null
+  estadoEnvio: 'Pendiente' | 'Enviada' | 'Reenviada' // Permite múltiples estados para reenvíos
+  fechaEnvio: string | null // null o fecha ISO después del envío
   usuarios: string
   timestamp: string // Timestamp de cuándo se agregó a pendientes
   isResend?: boolean // Indica si viene del botón de reenviar
   originalTitulo?: string // Título original para detectar ediciones
   originalId?: string // ID original del artículo (sin prefijo 'resend-')
   isUrgent?: boolean // Indica si fue creada con botón Urgente
+  resendCount?: number // Contador de reenvíos (opcional)
 }
 
 /**
@@ -95,5 +96,5 @@ export interface NotificationSendPayload {
   url?: string       // opcional: URL del artículo
   title?: string     // opcional: Título de la notificación (sección)
   content?: string   // opcional: Contenido de la notificación (título del artículo)
-  forward: boolean   // requerido: true si es reenvío, false si es notificación nueva
+  forward: "true" | "false"   // requerido: "true" si es reenvío, "false" si es notificación nueva (string)
 }
