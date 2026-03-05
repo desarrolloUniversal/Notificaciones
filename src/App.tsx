@@ -1,6 +1,6 @@
 import './App.css'
 import elUniversalLogo from './assets/images/el_universal.png'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
 import { fetchStoryFromUrl } from './notificaciones/fetchStoryFromUrl'
 import { parseStoryToNotification } from './notificaciones/parseStoryToNotification'
@@ -51,6 +51,9 @@ function App() {
   // Obtener notificaciones del usuario actual
   const pendingNotifications = getPendingNotifications()
 
+  // Referencia para hacer scroll a la sección de pendientes
+  const pendingSectionRef = useRef<HTMLDivElement>(null)
+
   const [urlInput, setUrlInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalUrlInput, setModalUrlInput] = useState('')
@@ -100,6 +103,10 @@ function App() {
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
   const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false)
+  const [isUrgentSuccessModalOpen, setIsUrgentSuccessModalOpen] = useState(false)
+  const [isUrgentWarningModalOpen, setIsUrgentWarningModalOpen] = useState(false)
+  const [isUrgentValidationModalOpen, setIsUrgentValidationModalOpen] = useState(false)
+  const [urgentValidationMessage, setUrgentValidationMessage] = useState('')
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -151,6 +158,76 @@ function App() {
     setIsModalOpen(true)
   }
 
+  const handleAddUrgenteNotification = () => {
+    // Validar: no agregar si ya existe una urgente incompleta
+    const hasIncompleteUrgent = pendingNotifications.some(pending => 
+      pending.isUrgent === true && 
+      (!pending.seccion || pending.seccion.trim() === '' || 
+       !pending.titulo || pending.titulo.trim() === '')
+    )
+    
+    if (hasIncompleteUrgent) {
+      // Mostrar modal de advertencia
+      setIsUrgentWarningModalOpen(true)
+      setTimeout(() => {
+        setIsUrgentWarningModalOpen(false)
+      }, 2500)
+      return
+    }
+    
+    // 1. Generar ID único
+    const urgentId = `urgent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
+    // 2. Crear objeto de notificación pendiente con datos por defecto
+    const urgentNotification: PendingNotificationFromUrl = {
+      id: urgentId,
+      thumbnail: '', // Vacío, usará logo por defecto
+      seccion: '', // VACÍO - Usuario debe llenar
+      titulo: '', // VACÍO - Usuario debe llenar
+      subtitulo: '',
+      url: '',
+      estadoEnvio: 'Pendiente',
+      fechaEnvio: null,
+      usuarios: username || 'Todos',
+      timestamp: new Date().toISOString(),
+      isUrgent: true, // Marca especial
+    }
+    
+    // 3. Agregar a pendientes
+    addPendingNotification(urgentNotification)
+    
+    // 4. Activar automáticamente modo de edición para sección y título
+    setEditingSectionId(urgentId)
+    setEditingSectionValue('')
+    setEditingTitleId(urgentId)
+    setEditingTitleValue('')
+    
+    // 5. Mostrar modal de éxito
+    setIsUrgentSuccessModalOpen(true)
+    setTimeout(() => {
+      setIsUrgentSuccessModalOpen(false)
+    }, 2000)
+    
+    // 6. Hacer scroll suave a la tabla de pendientes con highlight
+    setTimeout(() => {
+      if (pendingSectionRef.current) {
+        pendingSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+        
+        // Highlight temporal de la fila recién creada
+        setTimeout(() => {
+          const newRow = document.querySelector(`tr[data-pending-id="${urgentId}"]`)
+          if (newRow) {
+            newRow.classList.add('highlight-flash')
+            setTimeout(() => newRow.classList.remove('highlight-flash'), 2000)
+          }
+        }, 500)
+      }
+    }, 300)
+  }
+
   const handleModalClose = () => {
     setIsModalOpen(false)
     // ✅ Limpiar ambos campos al cerrar sin guardar (descartar)
@@ -174,6 +251,34 @@ function App() {
     if (!hasTestingPermissions()) {
       alert('❌ Acceso denegado\n\nNo tienes permisos para acceder a esta funcionalidad de testeo.\n\nSi consideras que deberías tener acceso, por favor contacta al administrador.')
       return
+    }
+
+    // Validar si es una notificación urgente y verificar sus datos
+    const pending = getPendingNotifications().find(n => n.id === notificationId)
+    
+    if (pending?.isUrgent) {
+      // Validar si hay edición activa (datos sin guardar)
+      if (editingSectionId === notificationId || editingTitleId === notificationId) {
+        setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de hacer test.\n\nPresiona el botón ✓ para guardar.')
+        setIsUrgentValidationModalOpen(true)
+        return
+      }
+      
+      // Validar sección (OBLIGATORIO)
+      if (!pending.seccion || pending.seccion.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar una sección para la notificación urgente antes de hacer test.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingSectionId(notificationId)
+        return
+      }
+      
+      // Validar título (OBLIGATORIO)
+      if (!pending.titulo || pending.titulo.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar un título para la notificación urgente antes de hacer test.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingTitleId(notificationId)
+        return
+      }
     }
 
     setSelectedNotificationId(notificationId)
@@ -224,20 +329,6 @@ function App() {
             ...basePayload,
             id: token  // Token push para envío dirigido
           }
-          
-          // Console detallado para debug
-          console.log('🔧 DEBUG - DATOS ENVIADOS AL API:')
-          console.table({
-            'Site': payload.site,
-            'Link': payload.link,
-            'Usuario': payload.userid,
-            'ID Artículo': payload.idarticulo,
-            'URL (path)': payload.url,
-            'Title (sección)': payload.title,
-            'Content (título)': payload.content,
-            'Forward': String(payload.forward),
-            'Token Push (TEST)': payload.id
-          })
           
           // Enviar directamente usando fetch (sin pasar por sendNotification)
           const authToken = useAuthStore.getState().token
@@ -343,6 +434,24 @@ function App() {
   }
 
   const handleRemovePending = (id: string) => {
+    // Validación para urgentes con datos completados
+    const pending = getPendingNotifications().find(p => p.id === id)
+    
+    if (pending?.isUrgent && (pending.seccion || pending.titulo)) {
+      const hasData = [
+        pending.seccion && `Sección: "${pending.seccion}"`,
+        pending.titulo && `Título: "${pending.titulo}"`
+      ].filter(Boolean).join('\n')
+      
+      const confirmed = confirm(
+        `⚠️ Esta notificación urgente tiene datos completados:\n\n${hasData}\n\n¿Desea eliminarla de todos modos?`
+      )
+      
+      if (!confirmed) {
+        return // Cancelar eliminación
+      }
+    }
+    
     removePendingNotification(id)
   }
 
@@ -364,7 +473,49 @@ function App() {
     setEditingTitleValue('')
   }
 
+  // Función helper: Detectar urgentes incompletas
+  const isUrgentIncomplete = (pending: PendingNotificationFromUrl): boolean => {
+    return pending.isUrgent === true && 
+           (!pending.seccion || pending.seccion.trim() === '' || 
+            !pending.titulo || pending.titulo.trim() === '')
+  }
+
+  // Función helper: Detectar urgentes antiguas (>24h)
+  const isUrgentOld = (pending: PendingNotificationFromUrl): boolean => {
+    if (!pending.isUrgent) return false
+    const created = new Date(pending.timestamp)
+    const now = new Date()
+    const hoursDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60)
+    return hoursDiff > 24
+  }
+
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
+    // Validar si hay edición activa para urgentes
+    if (pending.isUrgent && (editingSectionId === pending.id || editingTitleId === pending.id)) {
+      setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de enviar la notificación urgente.\n\nPresiona el botón ✓ para guardar.')
+      setIsUrgentValidationModalOpen(true)
+      return
+    }
+    
+    // Validación específica para urgentes
+    if (pending.isUrgent) {
+      // Validar sección (OBLIGATORIO)
+      if (!pending.seccion || pending.seccion.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar una sección para la notificación urgente antes de enviar.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingSectionId(pending.id)
+        return
+      }
+      
+      // Validar título (OBLIGATORIO)
+      if (!pending.titulo || pending.titulo.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar un título para la notificación urgente antes de enviar.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingTitleId(pending.id)
+        return
+      }
+    }
+    
     // Verificar si hay una edición de título en curso
     if (editingTitleId !== null) {
       setIsEditWarningModalOpen(true)
@@ -746,25 +897,38 @@ function App() {
         <h1 className="page-title">Notificaciones</h1>
         <div className="controls-group">
           {isAuthenticated && (
-            <div className="url-input-container">
-              <span className="url-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="2" y1="12" x2="22" y2="12"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            <>
+              <button 
+                className="add-urgente-btn"
+                onClick={handleAddUrgenteNotification}
+                title="Crear notificación urgente (requiere sección y título) - Complete los campos directamente en la tabla"
+                aria-label="Crear notificación urgente"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
-              </span>
-              <input
-                type="text"
-                className="url-input"
-                placeholder="Ingrese la URL"
-                value={urlInput}
-                onChange={handleUrlChange}
-                onClick={handleInputClick}
-                disabled={loading}
-                readOnly
-              />
-            </div>
+              </button>
+              <div className="url-input-container">
+                <span className="url-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="url-input"
+                  placeholder="Ingrese la URL"
+                  value={urlInput}
+                  onChange={handleUrlChange}
+                  onClick={handleInputClick}
+                  disabled={loading}
+                  readOnly
+                />
+              </div>
+            </>
           )}
           <button 
             className="refresh-btn" 
@@ -1379,7 +1543,7 @@ function App() {
 
       {/* Tabla de Notificaciones Pendientes */}
       {pendingNotifications.length > 0 && (
-        <div className="pending-section">
+        <div className="pending-section" ref={pendingSectionRef}>
           <div className="pending-banner">
             <span className="pending-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#2c3e50">
@@ -1405,7 +1569,15 @@ function App() {
               </thead>
               <tbody>
                 {pendingNotifications.map((pending, index) => (
-                  <tr key={pending.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                  <tr 
+                    key={pending.id} 
+                    data-pending-id={pending.id}
+                    className={`
+                      ${index % 2 === 0 ? 'even-row' : 'odd-row'}
+                      ${pending.isResend ? 'resend-row' : ''}
+                      ${isUrgentIncomplete(pending) ? 'urgent-row-incomplete' : ''}
+                    `}
+                  >
                     <td>
                       {pending.url ? (
                         <a 
@@ -1442,6 +1614,7 @@ function App() {
                               if (e.key === 'Escape') handleCancelEditSection()
                             }}
                             autoFocus
+                            placeholder="Ingrese la sección..."
                           />
                           <div className="section-edit-actions">
                             <button
@@ -1486,6 +1659,7 @@ function App() {
                               if (e.key === 'Escape') handleCancelEditTitle()
                             }}
                             autoFocus
+                            placeholder="Ingrese el título..."
                           />
                           <div className="title-edit-actions">
                             <button
@@ -1506,7 +1680,18 @@ function App() {
                         </div>
                       ) : (
                         <div className="title-display-container">
-                          <span className="title-text">{pending.titulo}</span>
+                          <span className="title-text">{pending.titulo || '(Sin título)'}</span>
+                          
+                          {/* Badge de antigüedad para urgentes incompletas >24h */}
+                          {isUrgentOld(pending) && isUrgentIncomplete(pending) && (
+                            <span 
+                              className="urgent-old-badge" 
+                              title={`Urgente creada hace más de 24 horas (${pending.timestamp})`}
+                            >
+                              ⏰ Antiguo
+                            </span>
+                          )}
+                          
                           <button
                             className="title-edit-btn"
                             onClick={() => handleStartEditTitle(pending.id, pending.titulo)}
@@ -1856,6 +2041,54 @@ function App() {
               <button 
                 className="modal-btn modal-btn-primary" 
                 onClick={() => setIsTestSuccessModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de éxito - Urgente creada */}
+      {isUrgentSuccessModalOpen && (
+        <div className="urgent-success-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          <div className="urgent-success-text">
+            <div className="urgent-success-title">¡Creada!</div>
+            <div className="urgent-success-message">Notificación urgente creada. Complete sección y título.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de advertencia - Urgente duplicada */}
+      {isUrgentWarningModalOpen && (
+        <div className="urgent-warning-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+          </svg>
+          <div className="urgent-warning-text">
+            <div className="urgent-warning-title">Urgente Incompleta</div>
+            <div className="urgent-warning-message">Ya existe una notificación urgente incompleta</div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de validación - Urgente */}
+      {isUrgentValidationModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsUrgentValidationModalOpen(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">⚠️</div>
+            <h3 className="confirm-title">Validación de Notificación Urgente</h3>
+            <p className="confirm-message" style={{ whiteSpace: 'pre-line' }}>
+              {urgentValidationMessage}
+            </p>
+            <div className="confirm-actions">
+              <button 
+                className="confirm-btn confirm-btn-cancel"
+                onClick={() => setIsUrgentValidationModalOpen(false)}
                 style={{ width: '100%' }}
               >
                 Entendido

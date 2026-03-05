@@ -2083,3 +2083,260 @@ td a {
     font-size: 0.9rem;
   }
 }
+
+/* =================================
+   NOTIFICACIONES URGENTES
+   ================================= */
+
+/* Botón Agregar Urgente */
+.add-urgente-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #ffffff;
+  border: 2px solid #991b1b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.add-urgente-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+  border-color: #7f1d1d;
+}
+
+.add-urgente-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.add-urgente-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.add-urgente-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* Fila de notificación urgente incompleta */
+.urgent-row-incomplete {
+  background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 50%, #fef2f2 100%) !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15) !important;
+}
+
+.urgent-row-incomplete:hover {
+  background: linear-gradient(90deg, #fee2e2 0%, #fecaca 50%, #fee2e2 100%) !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* Animación de highlight flash (parpadeo) */
+.highlight-flash {
+  animation: highlight-flash 0.6s ease 3;
+}
+
+@keyframes highlight-flash {
+  0%, 100% {
+    background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 50%, #fef2f2 100%);
+  }
+  50% {
+    background: linear-gradient(90deg, #fca5a5 0%, #f87171 50%, #fca5a5 100%);
+  }
+}
+
+/* Badge de urgente antigua (+24 horas) */
+.urgent-old-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  animation: pulse-urgent 2s ease-in-out infinite;
+  margin-left: 0.5rem;
+  cursor: help;
+}
+
+.urgent-old-badge svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+/* Modal de éxito urgente */
+.urgent-success-modal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 320px;
+  z-index: 10000;
+  animation: urgentSlideIn 0.4s ease-out;
+  border: 2px solid #047857;
+}
+
+.urgent-success-modal.closing {
+  animation: urgentSlideOut 0.3s ease-in;
+}
+
+.urgent-success-modal svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.urgent-success-text {
+  flex: 1;
+}
+
+.urgent-success-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.urgent-success-message {
+  font-size: 0.85rem;
+  opacity: 0.95;
+  line-height: 1.4;
+}
+
+/* Modal de advertencia urgente */
+.urgent-warning-modal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 320px;
+  z-index: 10000;
+  animation: urgentSlideIn 0.4s ease-out;
+  border: 2px solid #b45309;
+}
+
+.urgent-warning-modal.closing {
+  animation: urgentSlideOut 0.3s ease-in;
+}
+
+.urgent-warning-modal svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+.urgent-warning-text {
+  flex: 1;
+}
+
+.urgent-warning-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.urgent-warning-message {
+  font-size: 0.85rem;
+  opacity: 0.95;
+  line-height: 1.4;
+}
+
+/* Animaciones de modales urgentes */
+@keyframes urgentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes urgentSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+}
+
+/* Responsive para notificaciones urgentes */
+@media (max-width: 768px) {
+  .add-urgente-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .urgent-success-modal,
+  .urgent-warning-modal {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+  }
+  
+  .urgent-old-badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+}

@@ -14,7 +14,29 @@ const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.ama
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
   const username = useAuthStore.getState().username || ''
   
-  // Extraer solo el pathname de la URL (sin dominio)
+  // Para notificaciones urgentes, manejar diferente (sin URL real)
+  if (notification.isUrgent) {
+    const payload: NotificationSendPayload = {
+      site: 'eluniversal',
+      link: 'a Nota',
+      userid: username,
+      url: '/urgente',  // URL genérica para urgentes
+      content: notification.titulo,  // Título de la urgente
+      title: notification.seccion,   // Sección de la urgente
+      forward: false,
+      idarticulo: notification.id  // ID generado de la urgente
+    }
+    
+    // Obtener token push del usuario (si existe)
+    const pushToken = getPushToken(username)
+    if (pushToken) {
+      payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
+    }
+    
+    return payload
+  }
+  
+  // Para notificaciones normales (desde URL)
   let urlPath = notification.url
   try {
     const urlObj = new URL(notification.url)
@@ -81,19 +103,6 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
     const token = useAuthStore.getState().token
     const authHeaders = AuthService.getAuthHeader(token)
     
-    console.log('📡 DATOS QUE SE SUBEN AL API:')
-    console.table({
-      'Site': payload.site,
-      'Link': payload.link,
-      'Usuario': payload.userid,
-      'ID Artículo': payload.idarticulo,
-      'URL (path)': payload.url,
-      'Title (sección)': payload.title,
-      'Content (título)': payload.content,
-      'Forward': String(payload.forward),
-      'Push Token': payload.id ? '✅ Enviando solo a tu dispositivo' : '⚠️ Sin token (envío masivo)'
-    })
-    
     const response = await fetch(SEND_NOTIFICATION_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -126,9 +135,23 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
  * @returns true si la notificación puede ser enviada
  */
 export const canSendNotification = (notification: PendingNotificationFromUrl): boolean => {
-  // Validar que tenga los campos mínimos necesarios
-  if (!notification.url || !notification.titulo) {
-    return false
+  // Validación para notificaciones urgentes
+  if (notification.isUrgent) {
+    // Las urgentes solo necesitan sección y título (no URL)
+    if (!notification.seccion || notification.seccion.trim() === '') {
+      return false
+    }
+    if (!notification.titulo || notification.titulo.trim() === '') {
+      return false
+    }
+  } else {
+    // Para notificaciones normales, URL y título son obligatorios
+    if (!notification.url || notification.url.trim() === '') {
+      return false
+    }
+    if (!notification.titulo || notification.titulo.trim() === '') {
+      return false
+    }
   }
   
   // Validar que esté en estado pendiente
