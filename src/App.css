@@ -192,6 +192,85 @@
   opacity: 0.7;
 }
 
+/* Botón de Notificación Urgente (SVG +) */
+.add-urgente-btn {
+  padding: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.add-urgente-btn:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  animation: pulse-urgent 2s infinite;
+}
+
+.add-urgente-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
+}
+
+@keyframes pulse-urgent {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+}
+
+/* Fila de notificación urgente incompleta */
+.pending-notifications-table tbody tr.urgent-row-incomplete {
+  background: linear-gradient(90deg, 
+    rgba(220, 38, 38, 0.08) 0%, 
+    rgba(255, 220, 220, 0.35) 100%
+  ) !important;
+}
+
+/* Hover para filas urgentes - color más oscuro */
+.pending-notifications-table tbody tr.urgent-row-incomplete:hover {
+  background: linear-gradient(90deg, 
+    rgba(220, 38, 38, 0.15) 0%, 
+    rgba(255, 200, 200, 0.5) 100%
+  ) !important;
+}
+
+/* Celda de centro de envíos para urgentes incompletas */
+.pending-notifications-table tbody tr.urgent-row-incomplete .actions-cell,
+.pending-notifications-table tbody tr.urgent-row-incomplete .urgent-actions-cell {
+  background: linear-gradient(90deg, 
+    rgba(220, 38, 38, 0.08) 0%, 
+    rgba(255, 220, 220, 0.35) 100%
+  ) !important;
+}
+
+/* Zona de acciones amarilla para urgentes incompletas */
+.pending-notifications-table tbody tr.urgent-row-incomplete .actions-zone-yellow {
+  background: linear-gradient(90deg, 
+    rgba(220, 38, 38, 0.08) 0%, 
+    rgba(255, 220, 220, 0.35) 100%
+  ) !important;
+  border-bottom: 2px solid rgba(220, 38, 38, 0.3) !important;
+}
+
+/* Placeholders en cursiva sin negrita */
+.section-edit-input::placeholder,
+.title-edit-input::placeholder {
+  font-style: italic;
+  font-weight: normal;
+  color: #95a5a6;
+}
+
 .refresh-btn {
   padding: 12px 16px;
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
@@ -716,6 +795,103 @@ td a {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Modal pequeño de éxito urgente */
+.urgent-success-modal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  animation: urgentSlideIn 0.3s ease, urgentSlideOut 0.3s ease 1.7s;
+}
+
+.urgent-success-content {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 280px;
+}
+
+.urgent-success-icon {
+  font-size: 24px;
+  animation: urgentPulse 0.6s ease infinite;
+}
+
+.urgent-success-text {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+@keyframes urgentSlideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes urgentSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+@keyframes urgentPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Modal de advertencia notificación urgente incompleta */
+.urgent-warning-modal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  animation: urgentSlideIn 0.3s ease, urgentSlideOut 0.3s ease 2.2s;
+}
+
+.urgent-warning-content {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+}
+
+.urgent-warning-icon {
+  font-size: 24px;
+  animation: urgentPulse 0.6s ease infinite;
+}
+
+.urgent-warning-text {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.3px;
 }
 
 .modal-header {
@@ -1395,6 +1571,14 @@ td a {
     font-size: 2rem;
   }
 
+  .add-urgente-btn {
+    padding: 8px;
+    font-size: 16px;
+    margin-right: 8px;
+    min-width: 36px;
+    height: 36px;
+  }
+
   .pending-banner {
     flex-direction: column;
     text-align: center;
@@ -1405,8 +1589,33 @@ td a {
     font-size: 1rem;
   }
 
+  .urgent-success-modal {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .urgent-success-content {
+    min-width: auto;
+    width: 100%;
+    padding: 14px 18px;
+  }
+
+  .urgent-success-text {
+    font-size: 14px;
+  }
+
   .pending-count {
     align-self: center;
+  }
+}
+
+/* Media query adicional para móviles pequeños */
+@media (max-width: 480px) {
+  .add-urgente-btn {
+    margin-right: 0;
+    margin-bottom: 8px;
+    width: 100%;
   }
 }
 

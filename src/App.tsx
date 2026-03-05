@@ -1,6 +1,6 @@
 import './App.css'
 import elUniversalLogo from './assets/images/el_universal.png'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNotificacionesStore } from './notificaciones/useNotificacionesStore'
 import { fetchStoryFromUrl } from './notificaciones/fetchStoryFromUrl'
 import { parseStoryToNotification } from './notificaciones/parseStoryToNotification'
@@ -51,6 +51,9 @@ function App() {
   // Obtener notificaciones del usuario actual
   const pendingNotifications = getPendingNotifications()
 
+  // Referencia para hacer scroll a la sección de pendientes
+  const pendingSectionRef = useRef<HTMLDivElement>(null)
+
   const [urlInput, setUrlInput] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalUrlInput, setModalUrlInput] = useState('')
@@ -99,6 +102,8 @@ function App() {
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
   const [isInstructionsExpanded, setIsInstructionsExpanded] = useState(false)
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false)
+  const [isUrgentSuccessModalOpen, setIsUrgentSuccessModalOpen] = useState(false)
+  const [isUrgentWarningModalOpen, setIsUrgentWarningModalOpen] = useState(false)
 
   // Cargar token guardado del usuario al abrir el modal
   useEffect(() => {
@@ -158,6 +163,70 @@ function App() {
   const handleInputClick = () => {
     setModalUrlInput(urlInput)
     setIsModalOpen(true)
+  }
+
+  const handleAddUrgenteNotification = () => {
+    // Validar: no agregar si ya existe una urgente incompleta
+    const hasIncompleteUrgent = pendingNotifications.some(pending => 
+      pending.isUrgent === true && 
+      (!pending.seccion || pending.seccion.trim() === '' || 
+       !pending.titulo || pending.titulo.trim() === '')
+    )
+    
+    if (hasIncompleteUrgent) {
+      // Mostrar modal de advertencia
+      setIsUrgentWarningModalOpen(true)
+      setTimeout(() => {
+        setIsUrgentWarningModalOpen(false)
+      }, 2500)
+      return
+    }
+    
+    // 1. Generar ID único
+    const urgentId = `urgent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
+    // 2. Crear objeto de notificación pendiente con datos por defecto
+    const urgentNotification: PendingNotificationFromUrl = {
+      id: urgentId,
+      thumbnail: '', // Vacío, usará logo por defecto
+      seccion: '', // VACÍO - Usuario debe llenar
+      titulo: '', // VACÍO - Usuario debe llenar
+      subtitulo: '',
+      url: '',
+      estadoEnvio: 'Pendiente',
+      fechaEnvio: null,
+      usuarios: username || 'Todos', // Llenado default del usuario
+      timestamp: new Date().toISOString(),
+      isUrgent: true, // Marca especial para identificar urgentes
+    }
+    
+    // 3. Agregar a pendientes
+    addPendingNotification(urgentNotification)
+    
+    // 4. Activar automáticamente modo de edición para sección y título
+    setEditingSectionId(urgentId)
+    setEditingSectionValue('')
+    setEditingTitleId(urgentId)
+    setEditingTitleValue('')
+    
+    // 5. Mostrar modal de éxito
+    setIsUrgentSuccessModalOpen(true)
+    setTimeout(() => {
+      setIsUrgentSuccessModalOpen(false)
+    }, 2000) // Cierra después de 2 segundos
+    
+    // 6. Hacer scroll suave a la tabla de pendientes (con pequeño delay)
+    setTimeout(() => {
+      if (pendingSectionRef.current) {
+        pendingSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+      }
+    }, 300)
+    
+    // 6. Mostrar mensaje informativo
+    console.log('✅ Notificación urgente creada. Complete los campos de Sección y Título.')
   }
 
   const handleModalClose = () => {
@@ -326,6 +395,23 @@ function App() {
   }
 
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
+    // Validación específica para urgentes
+    if (pending.isUrgent) {
+      // Validar sección
+      if (!pending.seccion || pending.seccion.trim() === '') {
+        alert('⚠️ Sección requerida\n\nDebe ingresar una sección para la notificación urgente.')
+        setEditingSectionId(pending.id)
+        return
+      }
+      
+      // Validar título
+      if (!pending.titulo || pending.titulo.trim() === '') {
+        alert('⚠️ Título requerido\n\nDebe ingresar un título para la notificación urgente.')
+        setEditingTitleId(pending.id)
+        return
+      }
+    }
+    
     // Verificar si hay una edición de título en curso
     if (editingTitleId !== null) {
       setIsEditWarningModalOpen(true)
@@ -662,6 +748,13 @@ function App() {
     })
   }
 
+  // Detectar si es urgente incompleta
+  const isUrgentIncomplete = (pending: PendingNotificationFromUrl): boolean => {
+    return pending.isUrgent === true && 
+           (!pending.seccion || pending.seccion.trim() === '' || 
+            !pending.titulo || pending.titulo.trim() === '')
+  }
+
   const handleResend = (notification: typeof notifications[0]) => {
     if (!isAuthenticated || !username) {
       setIsResendErrorModalOpen(true)
@@ -707,25 +800,38 @@ function App() {
         <h1 className="page-title">Notificaciones</h1>
         <div className="controls-group">
           {isAuthenticated && (
-            <div className="url-input-container">
-              <span className="url-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="2" y1="12" x2="22" y2="12"/>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            <>
+              <button 
+                className="add-urgente-btn"
+                onClick={handleAddUrgenteNotification}
+                title="Agregar notificación urgente"
+                aria-label="Agregar notificación urgente"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
-              </span>
-              <input
-                type="text"
-                className="url-input"
-                placeholder="Ingrese la URL"
-                value={urlInput}
-                onChange={handleUrlChange}
-                onClick={handleInputClick}
-                disabled={loading}
-                readOnly
-              />
-            </div>
+              </button>
+              <div className="url-input-container">
+                <span className="url-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="url-input"
+                  placeholder="Ingrese la URL"
+                  value={urlInput}
+                  onChange={handleUrlChange}
+                  onClick={handleInputClick}
+                  disabled={loading}
+                  readOnly
+                />
+              </div>
+            </>
           )}
           <button 
             className="refresh-btn" 
@@ -1342,7 +1448,7 @@ function App() {
 
       {/* Tabla de Notificaciones Pendientes */}
       {pendingNotifications.length > 0 && (
-        <div className="pending-section">
+        <div className="pending-section" ref={pendingSectionRef}>
           <div className="pending-banner">
             <span className="pending-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#2c3e50">
@@ -1368,7 +1474,13 @@ function App() {
               </thead>
               <tbody>
                 {pendingNotifications.map((pending, index) => (
-                  <tr key={pending.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                  <tr 
+                    key={pending.id} 
+                    className={`
+                      ${index % 2 === 0 ? 'even-row' : 'odd-row'}
+                      ${isUrgentIncomplete(pending) ? 'urgent-row-incomplete' : ''}
+                    `.trim()}
+                  >
                     <td>
                       {pending.url ? (
                         <a 
@@ -1404,6 +1516,7 @@ function App() {
                               if (e.key === 'Enter') handleSaveSection(pending.id)
                               if (e.key === 'Escape') handleCancelEditSection()
                             }}
+                            placeholder="Escribe la sección"
                             autoFocus
                           />
                           <div className="section-edit-actions">
@@ -1448,6 +1561,7 @@ function App() {
                               if (e.key === 'Enter') handleSaveTitle(pending.id)
                               if (e.key === 'Escape') handleCancelEditTitle()
                             }}
+                            placeholder="Escribe el título"
                             autoFocus
                           />
                           <div className="title-edit-actions">
@@ -1488,7 +1602,7 @@ function App() {
                     </td>
                     <td className="number-cell">0</td>
                     <td>{pending.usuarios}</td>
-                    <td className="actions-cell">
+                    <td className={`actions-cell ${isUrgentIncomplete(pending) ? 'urgent-actions-cell' : ''}`}>
                       <div className="actions-container">
                         <div className="actions-zone actions-zone-yellow">
                           <div className="zone-buttons">
@@ -1786,6 +1900,26 @@ function App() {
                 Entendido
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de éxito notificación urgente */}
+      {isUrgentSuccessModalOpen && (
+        <div className="urgent-success-modal">
+          <div className="urgent-success-content">
+            <div className="urgent-success-icon">🚨</div>
+            <p className="urgent-success-text">¡Notificación urgente creada!</p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de advertencia notificación urgente incompleta */}
+      {isUrgentWarningModalOpen && (
+        <div className="urgent-warning-modal">
+          <div className="urgent-warning-content">
+            <div className="urgent-warning-icon">⚠️</div>
+            <p className="urgent-warning-text">Completa la notificación urgente anterior</p>
           </div>
         </div>
       )}
