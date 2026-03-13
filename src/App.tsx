@@ -1695,8 +1695,8 @@ function App() {
                         <div className="title-display-container">
                           <span className="title-text">{pending.titulo || '(Sin título)'}</span>
                           
-                          {/* Badge de antigüedad para urgentes incompletas >24h */}
-                          {isUrgentOld(pending) && isUrgentIncomplete(pending) && (
+                          {/* Badge de antigüedad para urgentes incompletas >24h (oculto) */}
+                          {false && isUrgentOld(pending) && isUrgentIncomplete(pending) && (
                             <span 
                               className="urgent-old-badge" 
                               title={`Urgente creada hace más de 24 horas (${pending.timestamp})`}
