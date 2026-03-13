@@ -113,17 +113,6 @@ function App() {
     fetchNotifications()
   }, [fetchNotifications])
 
-  // Limpiar pendientes cuya URL ya aparece en las notificaciones generales
-  useEffect(() => {
-    if (notificaciones.length === 0) return
-    const urlsEnviadas = new Set(notificaciones.map(n => n.url))
-    getPendingNotifications().forEach(p => {
-      if (urlsEnviadas.has(p.url)) {
-        removePendingNotification(p.id)
-      }
-    })
-  }, [notificaciones])
-
   const handleRefresh = async () => {
     try {
       await fetchNotifications(true)
