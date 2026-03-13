@@ -113,6 +113,17 @@ function App() {
     fetchNotifications()
   }, [fetchNotifications])
 
+  // Limpiar pendientes cuya URL ya aparece en las notificaciones generales
+  useEffect(() => {
+    if (notificaciones.length === 0) return
+    const urlsEnviadas = new Set(notificaciones.map(n => n.url))
+    getPendingNotifications().forEach(p => {
+      if (urlsEnviadas.has(p.url)) {
+        removePendingNotification(p.id)
+      }
+    })
+  }, [notificaciones])
+
   const handleRefresh = async () => {
     try {
       await fetchNotifications(true)
@@ -553,16 +564,8 @@ function App() {
       setLoadingProgress(100)
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // Actualizar estado en lugar de eliminar (permite reenvíos múltiples)
-      const now = new Date().toISOString()
-      const nuevoEstado = 'Enviada'
-      const nuevoContador = (pending.resendCount || 0) + 1
-      
-      updatePendingNotification(pending.id, {
-        estadoEnvio: nuevoEstado,
-        fechaEnvio: now,
-        resendCount: nuevoContador
-      })
+      // Eliminar de pendientes tras envío exitoso
+      removePendingNotification(pending.id)
       
       // Refrescar lista de notificaciones
       await fetchNotifications(true)
