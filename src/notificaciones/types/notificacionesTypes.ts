@@ -80,6 +80,7 @@ export interface PendingNotificationFromUrl {
   originalTitulo?: string // Título original para detectar ediciones
   originalId?: string // ID original del artículo (sin prefijo 'resend-')
   isUrgent?: boolean // Indica si fue creada con botón Urgente
+  isManual?: boolean // Indica si fue creada con '/' (sin URL real, edición manual)
   resendCount?: number // Contador de reenvíos (opcional)
 }
 

@@ -14,23 +14,27 @@ const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.ama
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
   const username = useAuthStore.getState().username || ''
   
-  // Para notificaciones urgentes, manejar diferente (sin URL real)
-  if (notification.isUrgent) {
+  // Para notificaciones urgentes y manuales, manejar diferente (sin URL real)
+  if (notification.isUrgent || notification.isManual) {
     const payload: NotificationSendPayload = {
       site: 'eluniversal',
       link: 'a Nota',
       userid: username,
-      url: '/urgente',  // URL genérica para urgentes
-      content: notification.titulo,  // Título de la urgente
-      title: notification.seccion,   // Sección de la urgente
-      forward: "false",  // string requerido por tipo
-      idarticulo: notification.id  // ID generado de la urgente
+      url: notification.isManual ? '/' : '/urgente',
+      content: notification.titulo,
+      title: notification.seccion,
+      forward: "false",
+      idarticulo: notification.id
     }
     
     // Obtener token push del usuario (si existe)
     const pushToken = getPushToken(username)
     if (pushToken) {
       payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
+    }
+    
+    if (notification.isManual) {
+      console.log('📝 [Manual "/"] Payload que se enviará:', JSON.stringify(payload, null, 2))
     }
     
     return payload
@@ -152,9 +156,9 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
  * @returns true si la notificación puede ser enviada
  */
 export const canSendNotification = (notification: PendingNotificationFromUrl): boolean => {
-  // Validación para notificaciones urgentes
-  if (notification.isUrgent) {
-    // Las urgentes solo necesitan sección y título (no URL)
+  // Validación para notificaciones urgentes y manuales (sin URL real)
+  if (notification.isUrgent || notification.isManual) {
+    // Solo necesitan sección y título
     if (!notification.seccion || notification.seccion.trim() === '') {
       return false
     }

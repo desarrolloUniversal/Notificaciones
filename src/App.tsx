@@ -256,7 +256,7 @@ function App() {
     // Validar si es una notificación urgente y verificar sus datos
     const pending = getPendingNotifications().find(n => n.id === notificationId)
     
-    if (pending?.isUrgent) {
+    if (pending?.isUrgent || pending?.isManual) {
       // Validar si hay edición activa (datos sin guardar)
       if (editingSectionId === notificationId || editingTitleId === notificationId) {
         setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de hacer test.\n\nPresiona el botón ✓ para guardar.')
@@ -266,7 +266,7 @@ function App() {
       
       // Validar sección (OBLIGATORIO)
       if (!pending.seccion || pending.seccion.trim() === '') {
-        setUrgentValidationMessage('Debe ingresar una sección para la notificación urgente antes de hacer test.')
+        setUrgentValidationMessage('Debe ingresar una sección antes de hacer test.')
         setIsUrgentValidationModalOpen(true)
         setEditingSectionId(notificationId)
         return
@@ -274,7 +274,7 @@ function App() {
       
       // Validar título (OBLIGATORIO)
       if (!pending.titulo || pending.titulo.trim() === '') {
-        setUrgentValidationMessage('Debe ingresar un título para la notificación urgente antes de hacer test.')
+        setUrgentValidationMessage('Debe ingresar un título antes de hacer test.')
         setIsUrgentValidationModalOpen(true)
         setEditingTitleId(notificationId)
         return
@@ -375,6 +375,53 @@ function App() {
       alert('❌ Por favor ingresa una URL')
       return
     }
+
+    // ── Caso especial: "/" → notificación manual sin URL real ────────────
+    if (url === '/') {
+      setIsModalOpen(false)
+      setModalUrlInput('')
+      setUrlInput('')
+
+      const manualId = `manual-${crypto.randomUUID()}`
+      const manualNotification: PendingNotificationFromUrl = {
+        id: manualId,
+        thumbnail: '',
+        seccion: '',
+        titulo: '',
+        subtitulo: '',
+        url: '',
+        estadoEnvio: 'Pendiente',
+        fechaEnvio: null,
+        usuarios: username || 'Todos',
+        timestamp: new Date().toISOString(),
+        isManual: true,
+      }
+
+      addPendingNotification(manualNotification)
+      console.log('📝 [Manual "/"] Notificación creada sin URL:', JSON.stringify(manualNotification, null, 2))
+
+      // Activar edición automática igual que urgentes
+      setEditingSectionId(manualId)
+      setEditingSectionValue('')
+      setEditingTitleId(manualId)
+      setEditingTitleValue('')
+
+      // Scroll a la sección de pendientes con highlight
+      setTimeout(() => {
+        if (pendingSectionRef.current) {
+          pendingSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          setTimeout(() => {
+            const newRow = document.querySelector(`tr[data-pending-id="${manualId}"]`)
+            if (newRow) {
+              newRow.classList.add('highlight-flash')
+              setTimeout(() => newRow.classList.remove('highlight-flash'), 2000)
+            }
+          }, 500)
+        }
+      }, 300)
+      return
+    }
+    // ─────────────────────────────────────────────────────────────────────
     
     // Validar formato de URL
     const validation = validateArticleUrl(url)
@@ -441,17 +488,17 @@ function App() {
   }
 
   const handleRemovePending = (id: string) => {
-    // Validación para urgentes con datos completados
+    // Validación para urgentes/manuales con datos completados
     const pending = getPendingNotifications().find(p => p.id === id)
     
-    if (pending?.isUrgent && (pending.seccion || pending.titulo)) {
+    if ((pending?.isUrgent || pending?.isManual) && (pending.seccion || pending.titulo)) {
       const hasData = [
         pending.seccion && `Sección: "${pending.seccion}"`,
         pending.titulo && `Título: "${pending.titulo}"`
       ].filter(Boolean).join('\n')
       
       const confirmed = confirm(
-        `⚠️ Esta notificación urgente tiene datos completados:\n\n${hasData}\n\n¿Desea eliminarla de todos modos?`
+        `⚠️ Esta notificación tiene datos completados:\n\n${hasData}\n\n¿Desea eliminarla de todos modos?`
       )
       
       if (!confirmed) {
@@ -480,10 +527,11 @@ function App() {
     setEditingTitleValue('')
   }
 
-  // Función helper: Detectar urgentes incompletas
+  // Función helper: Detectar urgentes/manuales incompletas
   const isUrgentIncomplete = (pending: PendingNotificationFromUrl): boolean => {
-    return pending.isUrgent === true && 
-           (!pending.seccion || pending.seccion.trim() === '' || 
+    const needsEdit = pending.isUrgent === true || pending.isManual === true
+    return needsEdit &&
+           (!pending.seccion || pending.seccion.trim() === '' ||
             !pending.titulo || pending.titulo.trim() === '')
   }
 
@@ -497,18 +545,18 @@ function App() {
   }
 
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
-    // Validar si hay edición activa para urgentes
-    if (pending.isUrgent && (editingSectionId === pending.id || editingTitleId === pending.id)) {
-      setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de enviar la notificación urgente.\n\nPresiona el botón ✓ para guardar.')
+    // Validar si hay edición activa para urgentes / manuales
+    if ((pending.isUrgent || pending.isManual) && (editingSectionId === pending.id || editingTitleId === pending.id)) {
+      setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de enviar la notificación.\n\nPresiona el botón ✓ para guardar.')
       setIsUrgentValidationModalOpen(true)
       return
     }
     
-    // Validación específica para urgentes
-    if (pending.isUrgent) {
+    // Validación específica para urgentes y manuales
+    if (pending.isUrgent || pending.isManual) {
       // Validar sección (OBLIGATORIO)
       if (!pending.seccion || pending.seccion.trim() === '') {
-        setUrgentValidationMessage('Debe ingresar una sección para la notificación urgente antes de enviar.')
+        setUrgentValidationMessage('Debe ingresar una sección antes de enviar.')
         setIsUrgentValidationModalOpen(true)
         setEditingSectionId(pending.id)
         return
@@ -516,7 +564,7 @@ function App() {
       
       // Validar título (OBLIGATORIO)
       if (!pending.titulo || pending.titulo.trim() === '') {
-        setUrgentValidationMessage('Debe ingresar un título para la notificación urgente antes de enviar.')
+        setUrgentValidationMessage('Debe ingresar un título antes de enviar.')
         setIsUrgentValidationModalOpen(true)
         setEditingTitleId(pending.id)
         return
