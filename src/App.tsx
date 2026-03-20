@@ -107,6 +107,9 @@ function App() {
   const [isUrgentWarningModalOpen, setIsUrgentWarningModalOpen] = useState(false)
   const [isUrgentValidationModalOpen, setIsUrgentValidationModalOpen] = useState(false)
   const [urgentValidationMessage, setUrgentValidationMessage] = useState('')
+  const [isTokenValidationModalOpen, setIsTokenValidationModalOpen] = useState(false)
+  const [tokenValidationMessage, setTokenValidationMessage] = useState('')
+  const [tokenValidationIcon, setTokenValidationIcon] = useState<'error' | 'warning'>('error')
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -301,17 +304,23 @@ function App() {
     const token = tokenInput.trim()
     
     if (!token) {
-      alert('Por favor ingrese un token válido')
+      setTokenValidationIcon('warning')
+      setTokenValidationMessage('Por favor ingrese un token válido.')
+      setIsTokenValidationModalOpen(true)
       return
     }
     if (!username) {
-      alert('Error: No se pudo obtener el usuario. Por favor inicia sesión nuevamente.')
+      setTokenValidationIcon('error')
+      setTokenValidationMessage('No se pudo obtener el usuario. Por favor inicia sesión nuevamente.')
+      setIsTokenValidationModalOpen(true)
       return
     }
     
     // Validar formato del token: ExponentPushToken[...]
     if (!validatePushToken(token)) {
-      alert('❌ Token inválido\n\nEl token debe tener el formato:\nExponentPushToken[TxQ9iZBVR5OEnNml20seN2]')
+      setTokenValidationIcon('error')
+      setTokenValidationMessage('Token inválido\n\nEl token debe tener el formato de ejemplo: ExponentPushToken[código]')
+      setIsTokenValidationModalOpen(true)
       return
     }
     
@@ -321,7 +330,9 @@ function App() {
     // Enviar notificación de test solo a este token
     const pending = getPendingNotifications().find(n => n.id === selectedNotificationId)
     if (!pending) {
-      alert('No se encontró la notificación pendiente para enviar.')
+      setTokenValidationIcon('error')
+      setTokenValidationMessage('No se encontró la notificación pendiente para enviar.')
+      setIsTokenValidationModalOpen(true)
       handleCloseTokenModal()
       return
     }
@@ -363,7 +374,9 @@ function App() {
           setIsTestSuccessModalOpen(true)
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-          alert(`❌ Error al enviar notificación:\n\n${errorMessage}`)
+          setTokenValidationIcon('error')
+          setTokenValidationMessage(`Error al enviar notificación:\n\n${errorMessage}`)
+          setIsTokenValidationModalOpen(true)
         }
   }
 
@@ -981,7 +994,7 @@ function App() {
                 <input
                   type="text"
                   className="url-input"
-                  placeholder="Ingrese la URL"
+                  placeholder="Crear URL de la nota "
                   value={urlInput}
                   onChange={handleUrlChange}
                   onClick={handleInputClick}
@@ -1024,14 +1037,14 @@ function App() {
         <div className="modal-overlay" onClick={handleModalClose}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Configurar Endpoint Personalizado</h2>
+              <h2 className="modal-title">Nueva nota</h2>
               <button className="modal-close-btn" onClick={handleModalClose}>
                 ✕
               </button>
             </div>
             <div className="modal-divider"></div>
             <div className="modal-body">
-              <label className="modal-label">URL del servidor:</label>
+              <label className="modal-label">URL de la nota:</label>
               <div className="modal-input-wrapper">
                 <span className="modal-input-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1072,7 +1085,7 @@ function App() {
             </div>
             <div className="modal-divider"></div>
             <div className="modal-body">
-              <label className="modal-label">Ingresa tu token para recibir notificaciones solo en tu dispositivo:</label>
+              <label className="modal-label">Ingresa el token de tu dispositivo:</label>
               <div className="modal-input-wrapper">
                 <span className="modal-input-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#9b59b6">
@@ -1082,7 +1095,7 @@ function App() {
                 <input
                   type="text"
                   className="modal-input"
-                  placeholder="ExponentPushToken[TxQ9iZBVR5OEnNml20seN2]"
+                  placeholder="Expo...."
                   value={tokenInput}
                   onChange={handleTokenChange}
                   autoFocus
@@ -1097,7 +1110,7 @@ function App() {
                 </div>
               )}
               <div className="modal-info" style={{ marginTop: '1rem', padding: '0.8rem', background: '#f3e5f5', borderRadius: '8px', fontSize: '0.85rem', color: '#7d3c98' }}>
-                <strong>Formato requerido:</strong> ExponentPushToken[código]
+                <strong>Ejemplo de token:</strong> ExponentPushToken[código]
               </div>
               <div className="modal-instructions" style={{ marginTop: '0.8rem', padding: '1rem', background: '#ffffff', border: '2px solid #e8daef', borderRadius: '8px' }}>
                 <div 
@@ -1128,7 +1141,7 @@ function App() {
                       <strong>🎯 Notificaciones personalizadas:</strong> Al guardar tu token, todas las notificaciones que envíes llegarán únicamente a tu dispositivo (no a todos los suscriptores).
                     </li>
                     <li style={{ marginBottom: '0.4rem' }}>
-                      <strong>🔒 Asociado a tu perfil:</strong> El token se guarda localmente asociado a tu usuario ({username}).
+                      <strong>🔒 Asociado a tu perfil:</strong> El token se guarda localmente asociado a tu usuario.
                     </li>
                     <li>
                       <strong>✅ Testeo seguro:</strong> Prueba las notificaciones sin afectar a otros usuarios.
@@ -2137,12 +2150,36 @@ function App() {
         </div>
       )}
 
+      {/* Modal de validación - Token */}
+      {isTokenValidationModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsTokenValidationModalOpen(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">{tokenValidationIcon === 'error' ? '❌' : '⚠️'}</div>
+            <h3 className="confirm-title">
+              {tokenValidationIcon === 'error' ? 'Token inválido' : 'Validación requerida'}
+            </h3>
+            <p className="confirm-message" style={{ whiteSpace: 'pre-line' }}>
+              {tokenValidationMessage}
+            </p>
+            <div className="confirm-actions">
+              <button
+                className="confirm-btn confirm-btn-cancel"
+                onClick={() => setIsTokenValidationModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de validación - Urgente */}
       {isUrgentValidationModalOpen && (
         <div className="modal-overlay" onClick={() => setIsUrgentValidationModalOpen(false)}>
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-icon">⚠️</div>
-            <h3 className="confirm-title">Validación de Notificación Urgente</h3>
+            <h3 className="confirm-title">Revisa</h3>
             <p className="confirm-message" style={{ whiteSpace: 'pre-line' }}>
               {urgentValidationMessage}
             </p>
