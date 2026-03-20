@@ -92,16 +92,14 @@ const extractSeccion = (taxonomyString: string, primarySectionPath: string): str
  * Extrae el título desde headlines_basic
  */
 const extractTitulo = (headlinesBasicString: string): string => {
-  const titulo = safeJsonParse<string>(headlinesBasicString, headlinesBasicString)
-  return normalizeAndCapitalize(titulo)
+  return normalizeAndCapitalize(headlinesBasicString)
 }
 
 /**
  * Extrae el subtítulo desde subheadlines_basic
  */
 const extractSubtitulo = (subheadlinesBasicString: string): string => {
-  const subtitulo = safeJsonParse<string>(subheadlinesBasicString, subheadlinesBasicString)
-  return normalizeAndCapitalize(subtitulo)
+  return normalizeAndCapitalize(subheadlinesBasicString)
 }
 
 /**
