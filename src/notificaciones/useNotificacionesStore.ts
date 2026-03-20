@@ -27,7 +27,7 @@ interface NotificacionesState {
 const CACHE_TIME_DEFAULT = 5 * 60 * 1000 // 5 minutos
 
 // URL directa del servidor de la API de notificaciones
-const API_URL = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificaciones?site=eluniversal'
+const API_URL = import.meta.env.VITE_NOTIFICATIONS_URL as string
 
 export const useNotificacionesStore = create<NotificacionesState>((set, get) => ({
   // Estado inicial

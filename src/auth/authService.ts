@@ -1,7 +1,7 @@
 // src/auth/authService.ts
 import type { LoginCredentials, AuthToken } from './authTypes'
 
-const AUTH_URL = 'https://asistente.eluniversal.com.mx/service/?do=ldpa'
+const AUTH_URL = import.meta.env.VITE_AUTH_URL as string
 
 export class AuthService {
   static async login(credentials: LoginCredentials): Promise<AuthToken> {

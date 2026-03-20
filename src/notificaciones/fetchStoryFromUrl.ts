@@ -7,7 +7,7 @@
 import type { StoryApiResponse } from './types/notificacionesTypes'
 
 // URL directa del servidor de la API de stories
-const STORIES_API_BASE_URL = 'https://wy1k8mgsuc.execute-api.us-east-1.amazonaws.com/stories'
+const STORIES_API_BASE_URL = import.meta.env.VITE_STORIES_API_URL as string
 const WEBSITE = 'eluniversal'
 
 /**
@@ -75,15 +75,22 @@ export const fetchStoryFromUrl = async (fullUrl: string): Promise<StoryApiRespon
     try {
       data = JSON.parse(responseText) as StoryApiResponse
     } catch (parseError) {
-      console.error('❌ [fetchStoryFromUrl] Error parseando JSON:', parseError)
+      console.error('❌ [fetchStoryFromUrl] Error parseando JSON. Respuesta cruda:', responseText.substring(0, 500))
+      console.error('❌ [fetchStoryFromUrl] URL consultada:', apiUrl)
       throw new Error(`Error al parsear respuesta JSON: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`)
     }
     
     // Log simplificado con información clave
-    const headlinesBasic = data.headlines_basic ? JSON.parse(data.headlines_basic) : {}
-    const titulo = headlinesBasic.basic || 'Sin título'
-    const taxonomy = data.taxonomy ? JSON.parse(data.taxonomy) : {}
-    const seccion = taxonomy.primary_section?.name || 'Sin sección'
+    let titulo = 'Sin título'
+    let seccion = 'Sin sección'
+    try {
+      const headlinesBasic = typeof data.headlines_basic === 'string' ? JSON.parse(data.headlines_basic) : data.headlines_basic
+      titulo = (typeof headlinesBasic === 'object' ? headlinesBasic.basic : headlinesBasic) || 'Sin título'
+    } catch { titulo = data.headlines_basic || 'Sin título' }
+    try {
+      const taxonomy = typeof data.taxonomy === 'string' ? JSON.parse(data.taxonomy) : data.taxonomy
+      seccion = (typeof taxonomy === 'object' ? taxonomy.primary_section?.name : taxonomy) || 'Sin sección'
+    } catch { seccion = 'Sin sección' }
     
     console.log(`✅ [fetchStoryFromUrl] Story obtenido:`, {
       id: data.idarticulo,

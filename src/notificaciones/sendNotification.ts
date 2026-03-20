@@ -4,7 +4,7 @@ import { useAuthStore } from '../auth/useAuthStore'
 import { AuthService } from '../auth/authService'
 import { getPushToken } from '../utils/pushTokenManager'
 
-const SEND_NOTIFICATION_ENDPOINT = 'https://voaq9ne5bf.execute-api.us-east-1.amazonaws.com/notificacion/url'
+const SEND_NOTIFICATION_ENDPOINT = import.meta.env.VITE_SEND_NOTIFICATION_URL as string
 
 /**
  * Prepara el payload para enviar una notificación
