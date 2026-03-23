@@ -9,8 +9,22 @@ import { useAuthStore } from '../auth/useAuthStore'
 const normalizeAndCapitalize = (text: string): string => {
   if (!text) return ''
   
-  // Normalizar UTF-8 (NFD para descomponer, NFC para componer)
-  const normalized = text.normalize('NFC')
+  // Desescapar secuencias literales \uXXXX (doble escapado de la API)
+  const unescaped = text.replace(/\\u([0-9a-fA-F]{4})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+  
+  // Limpiar secuencias de escape literales que la API devuelve sin parsear
+  const cleaned = unescaped
+    .split('\\"').join('"')  // \" → "
+    .split("\\'").join("'")  // \' → '
+    .split('\\\\').join('\\') // \\\\ → \\
+    .split('\\n').join(' ')   // \n literal → espacio
+    .split('\\t').join(' ')   // \t literal → espacio
+
+  // Quitar comillas externas que envuelven todo el texto (ej. "título completo")
+  const trimmed = cleaned.replace(/^"(.*)"$/, '$1')
+
+  // Normalizar UTF-8 (NFC para componer)
+  const normalized = trimmed.normalize('NFC')
   
   // Capitalizar primera letra
   return normalized.charAt(0).toUpperCase() + normalized.slice(1)
@@ -85,7 +99,9 @@ const extractSeccion = (taxonomyString: string, primarySectionPath: string): str
     '/espectaculos': 'Espectáculos',
   }
   
-  return pathToName[primarySectionPath] || normalizeAndCapitalize(primarySectionPath.replace('/', ''))
+  // Fallback: eliminar la / inicial, tomar el primer segmento y capitalizar
+  const cleanPath = primarySectionPath.replace(/^\//, '').split('/')[0]
+  return pathToName[primarySectionPath] || (cleanPath ? normalizeAndCapitalize(cleanPath) : 'General')
 }
 
 /**

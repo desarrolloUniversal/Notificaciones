@@ -48,12 +48,29 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
         
         if (!currentUser) return
 
+        // Desescapar secuencias literales y normalizar UTF-8 (NFC) antes de almacenar
+        const unescapeNFC = (text: string | null | undefined): string => {
+          if (!text) return ''
+          return text
+            .replace(/\\u([0-9a-fA-F]{4})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+            .split('\\"').join('"')
+            .split("\\'").join("'")
+            .normalize('NFC')
+        }
+
+        const normalized = {
+          ...notification,
+          titulo:    unescapeNFC(notification.titulo),
+          subtitulo: unescapeNFC(notification.subtitulo),
+          seccion:   unescapeNFC(notification.seccion),
+        }
+
         const userNotifications = pendingNotificationsByUser[currentUser] || []
         
         set({
           pendingNotificationsByUser: {
             ...pendingNotificationsByUser,
-            [currentUser]: [notification, ...userNotifications],
+            [currentUser]: [normalized, ...userNotifications],
           }
         })
       },
@@ -136,12 +153,20 @@ export const usePendingNotificationsStore = create<PendingNotificationsState>()(
       },
 
       // Obtener notificaciones del usuario actual
+      // Limpia secuencias de escape residuales (\" → ") en datos ya almacenados
       getPendingNotifications: () => {
         const { currentUser, pendingNotificationsByUser } = get()
         
         if (!currentUser) return []
         
-        return pendingNotificationsByUser[currentUser] || []
+        const raw = pendingNotificationsByUser[currentUser] || []
+        const stripOuter = (s: string) => s.split('\\"').join('"').replace(/^"(.*)"$/, '$1')
+        return raw.map((n) => ({
+          ...n,
+          titulo:    stripOuter(n.titulo    || ''),
+          subtitulo: stripOuter(n.subtitulo || ''),
+          seccion:   stripOuter(n.seccion   || ''),
+        }))
       },
 
       // Obtener cantidad de notificaciones del usuario actual
