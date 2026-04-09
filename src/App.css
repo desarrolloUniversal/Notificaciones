@@ -759,6 +759,10 @@ td a {
   transform: rotate(90deg);
 }
 
+.modal-close-btn:focus {
+  outline: none;
+}
+
 .modal-divider {
   height: 2px;
   background: linear-gradient(90deg, #d4af37, transparent);
@@ -848,6 +852,10 @@ td a {
   background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+}
+
+.modal-btn-primary:focus {
+  outline: none;
 }
 
 .modal-btn-secondary {
@@ -2120,6 +2128,10 @@ td a {
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
 }
 
+.add-urgente-btn:focus {
+  outline: none;
+}
+
 .add-urgente-btn svg {
   width: 18px;
   height: 18px;
@@ -2129,6 +2141,52 @@ td a {
 
 .add-urgente-btn:hover svg {
   transform: rotate(90deg);
+}
+
+.promociones-btn {
+  background: #2ecc71;
+  color: #ffffff;
+  border: 2px solid #27ae60;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.promociones-btn:hover {
+  background: #27ae60;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.5);
+  border-color: #1e8449;
+}
+
+.promociones-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.4);
+}
+
+.promociones-btn:focus {
+  outline: none;
+}
+
+.promociones-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.promociones-btn:hover svg {
+  transform: rotate(15deg) scale(1.1);
 }
 
 /* Fila de notificación urgente incompleta */

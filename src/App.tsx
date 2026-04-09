@@ -110,6 +110,9 @@ function App() {
   const [isTokenValidationModalOpen, setIsTokenValidationModalOpen] = useState(false)
   const [tokenValidationMessage, setTokenValidationMessage] = useState('')
   const [tokenValidationIcon, setTokenValidationIcon] = useState<'error' | 'warning'>('error')
+  const [isPromocionesModalOpen, setIsPromocionesModalOpen] = useState(false)
+  const [promocionesUrlInput, setPromocionesUrlInput] = useState('')
+  const [promocionesIdArticulo, setPromocionesIdArticulo] = useState('')
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -997,6 +1000,81 @@ function App() {
         </div>
       </div>
 
+      {/* Modal de Promociones */}
+      {isPromocionesModalOpen && (
+        <div className="modal-overlay" onClick={() => { setIsPromocionesModalOpen(false); setPromocionesUrlInput(''); setPromocionesIdArticulo('') }}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ border: '2px solid #27ae60' }}>
+            <div className="modal-header" style={{ background: 'linear-gradient(135deg, #1e8449 0%, #27ae60 100%)' }}>
+              <h2 className="modal-title" style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                  <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+                Nueva Promoción
+              </h2>
+              <button className="modal-close-btn" onClick={() => { setIsPromocionesModalOpen(false); setPromocionesUrlInput(''); setPromocionesIdArticulo('') }} style={{ color: '#fff' }}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-divider" style={{ borderColor: '#a9dfbf' }}></div>
+            <div className="modal-body">
+              <label className="modal-label" style={{ color: '#1e8449', fontWeight: 600 }}>URL de la promoción:</label>
+              <div className="modal-input-wrapper" style={{ border: '2px solid #a9dfbf', borderRadius: '8px' }}>
+                <span className="modal-input-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="modal-input"
+                  placeholder="https://..."
+                  value={promocionesUrlInput}
+                  onChange={(e) => setPromocionesUrlInput(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div style={{ marginTop: '1rem', padding: '0.8rem', background: '#f0faf4', borderRadius: '8px', border: '1px solid #a9dfbf', fontSize: '0.85rem', color: '#1e8449', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#ffd700">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span>Ingresa la URL de la nota que deseas promocionar</span>
+              </div>
+              <div style={{ marginTop: '1rem' }}>
+                <label className="modal-label" style={{ color: '#1e8449', fontWeight: 600 }}>ID del artículo:</label>
+                <div className="modal-input-wrapper" style={{ border: '2px solid #a9dfbf', borderRadius: '8px' }}>
+                  <span className="modal-input-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <path d="M9 9h6M9 12h6M9 15h4"/>
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    className="modal-input"
+                    placeholder="ID del artículo..."
+                    value={promocionesIdArticulo}
+                    onChange={(e) => setPromocionesIdArticulo(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-btn modal-btn-primary"
+                onClick={() => { setIsPromocionesModalOpen(false); setPromocionesUrlInput(''); setPromocionesIdArticulo('') }}
+                style={{ background: 'linear-gradient(135deg, #1e8449 0%, #27ae60 100%)', border: '2px solid #1a7a40', color: '#fff' }}
+              >
+                <span className="btn-icon" style={{ color: '#ffd700' }}>✓</span>
+                Agregar URL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de configuración de URL */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={handleModalClose}>
@@ -1614,6 +1692,18 @@ function App() {
               readOnly
             />
           </div>
+          <button
+            className="promociones-btn"
+            onClick={() => setIsPromocionesModalOpen(true)}
+            title="Crear notificación de promociones"
+            aria-label="Crear notificación de promociones"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+              <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+            <span>Promociones</span>
+          </button>
         </div>
       )}
 
