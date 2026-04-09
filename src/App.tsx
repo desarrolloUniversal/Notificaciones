@@ -969,41 +969,6 @@ function App() {
       <div className="header-section">
         <h1 className="page-title">Notificaciones</h1>
         <div className="controls-group">
-          {isAuthenticated && (
-            <>
-              <button 
-                className="add-urgente-btn"
-                onClick={handleAddUrgenteNotification}
-                title="Crear notificación urgente (requiere sección y título) - Complete los campos directamente en la tabla"
-                aria-label="Crear notificación urgente"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                <span>Urgente</span>
-              </button>
-              <div className="url-input-container">
-                <span className="url-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  className="url-input"
-                  placeholder="Crear URL de la nota "
-                  value={urlInput}
-                  onChange={handleUrlChange}
-                  onClick={handleInputClick}
-                  disabled={loading}
-                  readOnly
-                />
-              </div>
-            </>
-          )}
           <button 
             className="refresh-btn" 
             onClick={handleRefresh}
@@ -1615,6 +1580,43 @@ function App() {
         </div>
       )}
 
+      {/* Barra de acciones de notificaciones */}
+      {isAuthenticated && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 0', marginBottom: '0.5rem' }}>
+          <button
+            className="add-urgente-btn"
+            onClick={handleAddUrgenteNotification}
+            title="Crear notificación urgente (requiere sección y título) - Complete los campos directamente en la tabla"
+            aria-label="Crear notificación urgente"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Urgente</span>
+          </button>
+          <div className="url-input-container">
+            <span className="url-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              className="url-input"
+              placeholder="Crear URL de la nota "
+              value={urlInput}
+              onChange={handleUrlChange}
+              onClick={handleInputClick}
+              disabled={loading}
+              readOnly
+            />
+          </div>
+        </div>
+      )}
+
       {/* Tabla de Notificaciones Pendientes */}
       {pendingNotifications.length > 0 && (
         <div className="pending-section" ref={pendingSectionRef}>
@@ -1673,6 +1675,23 @@ function App() {
                           alt={pending.titulo}
                           className="thumbnail"
                         />
+                      )}
+                      {pending.area && (
+                        <span style={{
+                          display: 'inline-block',
+                          marginTop: '4px',
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                          background: pending.area === 'trivia' ? '#e8f8f0' : '#fef9e7',
+                          color: pending.area === 'trivia' ? '#27ae60' : '#d4a017',
+                          border: `1px solid ${pending.area === 'trivia' ? '#a9dfbf' : '#f9e4a0'}`,
+                        }}>
+                          {pending.area === 'trivia' ? 'Trivia' : 'Editorial'}
+                        </span>
                       )}
                     </td>
                     <td className="section-cell editable-section-cell">

@@ -82,6 +82,7 @@ export interface PendingNotificationFromUrl {
   isUrgent?: boolean // Indica si fue creada con botón Urgente
   isManual?: boolean // Indica si fue creada con '/' (sin URL real, edición manual)
   resendCount?: number // Contador de reenvíos (opcional)
+  area?: 'editorial' | 'trivia' // Área de origen de la notificación
 }
 
 /**
