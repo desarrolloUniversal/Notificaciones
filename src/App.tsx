@@ -349,6 +349,8 @@ function App() {
         ...basePayload,
         id: token  // Token push MANUAL para envío dirigido
       }
+
+      console.log('[TEST por token] Payload a enviar:', payload)
           
           // Enviar directamente usando fetch (sin pasar por sendNotification)
           const authToken = useAuthStore.getState().token
@@ -501,6 +503,59 @@ function App() {
       setIsLoadingNewNotification(false)
       setLoadingProgress(0)
     }
+  }
+
+  const handleApplyPromocion = () => {
+    const url = promocionesUrlInput.trim()
+    const idArticulo = promocionesIdArticulo.trim()
+
+    if (!url) {
+      setUrgentValidationMessage('Por favor ingresa una URL.')
+      setIsUrgentValidationModalOpen(true)
+      return
+    }
+
+    try {
+      new URL(url)
+    } catch {
+      setUrgentValidationMessage('La URL no es válida.\n\nDebe comenzar con http:// o https://')
+      setIsUrgentValidationModalOpen(true)
+      return
+    }
+
+    if (!idArticulo) {
+      setUrgentValidationMessage('Por favor ingresa el ID del artículo.')
+      setIsUrgentValidationModalOpen(true)
+      return
+    }
+
+    if (!/^\d+$/.test(idArticulo)) {
+      setUrgentValidationMessage('El ID del artículo debe contener solo números.')
+      setIsUrgentValidationModalOpen(true)
+      return
+    }
+
+    // Construir notificaci\u00f3n de Promociones con valores fijos.
+    // La url corresponde a data.url del futuro endpoint del backend.
+    const notification: PendingNotificationFromUrl = {
+      id: idArticulo,
+      thumbnail: '',
+      seccion: '',
+      titulo: '',
+      subtitulo: '',
+      url,
+      estadoEnvio: 'Pendiente',
+      fechaEnvio: null,
+      usuarios: username || 'Todos',
+      timestamp: new Date().toISOString(),
+      area: 'promociones',
+    }
+
+    console.log('[Promociones] Payload a enviar:', notification)
+    addPendingNotification(notification)
+    setIsPromocionesModalOpen(false)
+    setPromocionesUrlInput('')
+    setPromocionesIdArticulo('')
   }
 
   const handleRemovePending = (id: string) => {
@@ -1053,10 +1108,12 @@ function App() {
                   </span>
                   <input
                     type="text"
+                    inputMode="numeric"
                     className="modal-input"
                     placeholder="ID del artículo..."
                     value={promocionesIdArticulo}
-                    onChange={(e) => setPromocionesIdArticulo(e.target.value)}
+                    // Solo permite dígitos (0-9). Bloquea letras, espacios y símbolos en tiempo real.
+                    onChange={(e) => { if (/^\d*$/.test(e.target.value)) setPromocionesIdArticulo(e.target.value) }}
                   />
                 </div>
               </div>
@@ -1064,7 +1121,7 @@ function App() {
             <div className="modal-footer">
               <button
                 className="modal-btn modal-btn-primary"
-                onClick={() => { setIsPromocionesModalOpen(false); setPromocionesUrlInput(''); setPromocionesIdArticulo('') }}
+                onClick={handleApplyPromocion}
                 style={{ background: 'linear-gradient(135deg, #1e8449 0%, #27ae60 100%)', border: '2px solid #1a7a40', color: '#fff' }}
               >
                 <span className="btn-icon" style={{ color: '#ffd700' }}>✓</span>
@@ -1742,47 +1799,49 @@ function App() {
                       ${index % 2 === 0 ? 'even-row' : 'odd-row'}
                       ${pending.isResend ? 'resend-row' : ''}
                       ${isUrgentIncomplete(pending) ? 'urgent-row-incomplete' : ''}
+                      ${pending.area === 'promociones' ? 'promociones-row' : ''}
                     `}
                   >
-                    <td>
-                      {pending.url ? (
-                        <a 
-                          href={pending.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          title="Ver nota completa"
-                        >
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                        {pending.url ? (
+                          <a 
+                            href={pending.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            title="Ver nota completa"
+                          >
+                            <img 
+                              src={getImageBySectionOrId(pending.thumbnail)} 
+                              alt={pending.titulo}
+                              className="thumbnail"
+                              style={{ cursor: 'pointer' }}
+                            />
+                          </a>
+                        ) : (
                           <img 
                             src={getImageBySectionOrId(pending.thumbnail)} 
                             alt={pending.titulo}
                             className="thumbnail"
-                            style={{ cursor: 'pointer' }}
                           />
-                        </a>
-                      ) : (
-                        <img 
-                          src={getImageBySectionOrId(pending.thumbnail)} 
-                          alt={pending.titulo}
-                          className="thumbnail"
-                        />
-                      )}
-                      {pending.area && (
-                        <span style={{
-                          display: 'inline-block',
-                          marginTop: '4px',
-                          padding: '2px 8px',
-                          borderRadius: '10px',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
-                          background: pending.area === 'trivia' ? '#e8f8f0' : '#fef9e7',
-                          color: pending.area === 'trivia' ? '#27ae60' : '#d4a017',
-                          border: `1px solid ${pending.area === 'trivia' ? '#a9dfbf' : '#f9e4a0'}`,
-                        }}>
-                          {pending.area === 'trivia' ? 'Trivia' : 'Editorial'}
-                        </span>
-                      )}
+                        )}
+                        {pending.area && (
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            background: pending.area === 'promociones' ? '#e8f8f0' : '#fef9e7',
+                            color: pending.area === 'promociones' ? '#27ae60' : '#d4a017',
+                            border: `1px solid ${pending.area === 'promociones' ? '#a9dfbf' : '#f9e4a0'}`,
+                          }}>
+                            {pending.area === 'promociones' ? 'Promociones' : 'Editorial'}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="section-cell editable-section-cell">
                       {editingSectionId === pending.id ? (
@@ -1895,7 +1954,15 @@ function App() {
                     <td>{pending.usuarios}</td>
                     <td className="actions-cell">
                       <div className="actions-container">
-                        <div className="actions-zone actions-zone-yellow">
+                        <div
+                          className={`actions-zone ${
+                            pending.area === 'promociones'
+                              ? 'actions-zone-green'
+                              : pending.isUrgent
+                              ? 'actions-zone-red'
+                              : 'actions-zone-yellow'
+                          }`}
+                        >
                           <div className="zone-buttons">
                             <button 
                               className="apply-btn"
@@ -1987,8 +2054,8 @@ function App() {
         <table className="notifications-table">
           <thead>
             <tr>
-              <th className="center-header">Thumbnail</th>
-              <th className="center-header">
+              <th className="center-header" style={{ width: '220px' }}>Thumbnail</th>
+              <th className="center-header" style={{ width: '150px' }}>
                 <div className="filter-header">
                   <span>Sección</span>
                   <button 
@@ -2005,8 +2072,8 @@ function App() {
                   )}
                 </div>
               </th>
-              <th className="center-header">Título</th>
-              <th className="center-header">
+              <th className="center-header" style={{ width: '180px' }}>Título</th>
+              <th className="center-header" style={{ width: '150px' }}>
                 <div className="filter-header">
                   <span>Fecha de Envío</span>
                   <button 
@@ -2023,40 +2090,58 @@ function App() {
                   )}
                 </div>
               </th>
-              <th className="center-header">Estado<br />de envío</th>
-              <th className="center-header">Total de envíos</th>
-              <th>Usuarios</th>
+              <th className="center-header" style={{ width: '130px' }}>Estado<br />de envío</th>
+              <th className="center-header" style={{ width: '130px' }}>Total de envíos</th>
+              <th className="center-header" style={{ width: '220px' }}>Usuarios</th>
             </tr>
           </thead>
           <tbody>
             {filteredNotifications.map((notification) => (
               <tr key={notification.id}>
-                <td>
-                  {notification.url ? (
-                    <a 
-                      href={notification.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      title="Ver nota completa"
-                    >
+                <td style={{ textAlign: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                    {notification.url ? (
+                      <a 
+                        href={notification.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        title="Ver nota completa"
+                      >
+                        <img 
+                          src={getImageBySectionOrId(notification.thumbnail)} 
+                          alt={notification.titulo}
+                          className="thumbnail"
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </a>
+                    ) : (
                       <img 
                         src={getImageBySectionOrId(notification.thumbnail)} 
                         alt={notification.titulo}
                         className="thumbnail"
-                        style={{ cursor: 'pointer' }}
                       />
-                    </a>
-                  ) : (
-                    <img 
-                      src={getImageBySectionOrId(notification.thumbnail)} 
-                      alt={notification.titulo}
-                      className="thumbnail"
-                    />
-                  )}
+                    )}
+                    {(notification.area === 'promociones' || notification.seccion === 'Noticia destacada' || notification.seccion === 'Promociones') && (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        background: '#e8f8f0',
+                        color: '#27ae60',
+                        border: '1px solid #a9dfbf',
+                      }}>
+                        Promociones
+                      </span>
+                    )}
+                  </div>
                 </td>
-                <td>{notification.seccion}</td>
+                <td style={{ textAlign: 'center' }}>{notification.seccion}</td>
                 <td className="title-cell">{notification.titulo}</td>
-                <td>{formatDate(notification.fechaEnvio)}</td>
+                <td style={{ textAlign: 'center' }}>{formatDate(notification.fechaEnvio)}</td>
                 <td>
                   <div className="status-cell-container">
                     <span className={`status-badge ${getStatusClass(notification.estadoEnvio)}`}>

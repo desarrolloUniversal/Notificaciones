@@ -288,7 +288,7 @@
 .notifications-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 16px;
   font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -326,13 +326,13 @@
 .notifications-table td {
   padding: 18px 16px;
   color: #2c3e50;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
 }
 
 .thumbnail {
-  width: 100px;
-  height: 70px;
+  width: 200px;
+  height: 120px;
   border-radius: 8px;
   object-fit: cover;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -1179,6 +1179,15 @@ td a {
   box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
 }
 
+.pending-notifications-table tbody tr.promociones-row {
+  background: #e8f8f0 !important;
+}
+
+.pending-notifications-table tbody tr.promociones-row:hover {
+  background: #fff5d6 !important;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
 .pending-notifications-table td {
   color: #7d6b00;
   border-bottom: 1px solid #f0d16d;
@@ -1227,6 +1236,7 @@ td a {
   padding: 0 !important;
   border-bottom: none !important;
   vertical-align: top;
+  position: relative;
 }
 
 .actions-container {
@@ -1234,6 +1244,11 @@ td a {
   flex-direction: column;
   width: 100%;
   min-width: 160px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .actions-zone {
@@ -1245,14 +1260,53 @@ td a {
 }
 
 .actions-zone-yellow {
-  background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%);
-  border-bottom: 2px solid #f1c40f;
+  background: transparent;
+  border-bottom: 2px solid transparent;
   padding: 1.2rem 0.8rem;
+}
+
+.actions-zone-yellow:hover,
+tr:hover .actions-zone-yellow {
+  background: #fff5d6;
+  border-bottom: 2px solid #f1c40f;
+}
+.actions-zone-green {
+  background: #e8f8f0;
+  border-bottom: 2px solid #27ae60;
+  padding: 1.2rem 0.8rem;
+}
+
+.actions-zone-green:hover {
+  background: #fff5d6;
+  border-bottom: 2px solid #f1c40f;
+}
+
+tr:hover .actions-zone-green {
+  background: #fff5d6;
+  border-bottom: 2px solid #f1c40f;
+}
+
+.actions-zone-red {
+  background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%);
+  border-bottom: 2px solid #dc2626;
+  padding: 1.2rem 0.8rem;
+}
+
+.actions-zone-red:hover {
+  background: #fff5d6;
+  border-bottom: 2px solid #f1c40f;
+}
+
+tr:hover .actions-zone-red {
+  background: #fff5d6;
+  border-bottom: 2px solid #f1c40f;
 }
 
 .actions-zone-purple {
   background: linear-gradient(135deg, #f3e5f5 0%, #e8daef 100%);
   padding: 0.5rem 0.8rem;
+  flex: 1;
+  justify-content: center;
 }
 
 .zone-label {
