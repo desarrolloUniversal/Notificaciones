@@ -16,7 +16,7 @@ export const isElUniversalUrl = (url: string): boolean => {
 /**
  * Valida el formato básico de una URL para artículos de El Universal
  */
-export const validateArticleUrl = (url: string): { valid: boolean; message?: string } => {
+export const validateArticleUrl = (url: string): { valid: boolean; message?: string; type?: 'subdomain' } => {
   if (!url || url.trim().length === 0) {
     return {
       valid: false,
@@ -30,7 +30,7 @@ export const validateArticleUrl = (url: string): { valid: boolean; message?: str
   if (!trimmedUrl.startsWith('http') && !trimmedUrl.startsWith('/')) {
     return {
       valid: false,
-      message: 'La URL debe empezar con "https://" o "/" para rutas relativas'
+      message: 'La URL debe comenzar con https://'
     }
   }
 
@@ -39,8 +39,24 @@ export const validateArticleUrl = (url: string): { valid: boolean; message?: str
     if (!isElUniversalUrl(trimmedUrl)) {
       return {
         valid: false,
-        message: 'La URL debe ser de eluniversal.com.mx'
+        message: 'Solo se aceptan URLs de eluniversal.com.mx'
       }
+    }
+
+    // Verificar que sea del subdominio www (único soportado por la API de stories)
+    try {
+      const urlObj = new URL(trimmedUrl)
+      const hostname = urlObj.hostname
+      const isWww = hostname === 'www.eluniversal.com.mx' || hostname === 'eluniversal.com.mx'
+      if (!isWww) {
+        return {
+          valid: false,
+          type: 'subdomain',
+          message: trimmedUrl
+        }
+      }
+    } catch {
+      // Si falla el parseo, dejar pasar
     }
   }
 
@@ -50,7 +66,7 @@ export const validateArticleUrl = (url: string): { valid: boolean; message?: str
       trimmedUrl === '/') {
     return {
       valid: false,
-      message: 'Debes ingresar la URL completa de un artículo específico'
+      message: 'Ingresa la URL completa de un artículo'
     }
   }
 

@@ -113,6 +113,8 @@ function App() {
   const [isPromocionesModalOpen, setIsPromocionesModalOpen] = useState(false)
   const [promocionesUrlInput, setPromocionesUrlInput] = useState('')
   const [promocionesIdArticulo, setPromocionesIdArticulo] = useState('')
+  const [isSubdomainErrorModalOpen, setIsSubdomainErrorModalOpen] = useState(false)
+  const [subdomainErrorUrl, setSubdomainErrorUrl] = useState('')
 
   // Cargar notificaciones al iniciar
   useEffect(() => {
@@ -390,7 +392,8 @@ function App() {
     
     // Validación básica
     if (!url) {
-      alert('❌ Por favor ingresa una URL')
+      setUrgentValidationMessage('Por favor ingresa una URL')
+      setIsUrgentValidationModalOpen(true)
       return
     }
 
@@ -444,7 +447,13 @@ function App() {
     // Validar formato de URL
     const validation = validateArticleUrl(url)
     if (!validation.valid) {
-      alert(`❌ URL inválida\n\n${validation.message}`)
+      if (validation.type === 'subdomain') {
+        setSubdomainErrorUrl(validation.message || url)
+        setIsSubdomainErrorModalOpen(true)
+      } else {
+        setUrgentValidationMessage(validation.message || 'URL inválida')
+        setIsUrgentValidationModalOpen(true)
+      }
       return
     }
     
@@ -452,7 +461,8 @@ function App() {
     const analysis = analyzeUrl(url)
     
     if (!analysis.isValid) {
-      alert(`❌ Error al analizar URL\n\n${analysis.error}`)
+      setUrgentValidationMessage(analysis.error || 'Error al analizar URL')
+      setIsUrgentValidationModalOpen(true)
       return
     }
     
@@ -494,11 +504,9 @@ function App() {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido al obtener artículo'
       setLoadingError(errorMessage)
       
-      // ❌ Alerta de error
-      alert(`❌ Error al cargar la URL\n\n${errorMessage}\n\nVerifica que la URL sea válida y que el artículo exista.`)
-      
-      // Mantener el error visible por más tiempo
-      await new Promise(resolve => setTimeout(resolve, 4000))
+      // ❌ Mostrar error en modal
+      setUrgentValidationMessage(errorMessage)
+      setIsUrgentValidationModalOpen(true)
     } finally {
       setIsLoadingNewNotification(false)
       setLoadingProgress(0)
@@ -2362,6 +2370,33 @@ function App() {
                 style={{ width: '100%' }}
               >
                 Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de error - URL con subdominio no soportado */}
+      {isSubdomainErrorModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsSubdomainErrorModalOpen(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon">⚠️</div>
+            <h3 className="confirm-title">URL no soportada</h3>
+            <p className="confirm-message" style={{ wordBreak: 'break-all', marginBottom: '0.5rem' }}>
+              <strong>"{subdomainErrorUrl}"</strong>
+            </p>
+            <p className="confirm-message">
+              no está soportada. Usa el botón{' '}
+              <strong style={{ color: '#27ae60' }}>Promociones</strong>
+              {' '}para enviarla.
+            </p>
+            <div className="confirm-actions">
+              <button
+                className="confirm-btn confirm-btn-cancel"
+                onClick={() => setIsSubdomainErrorModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Entendido
               </button>
             </div>
           </div>
