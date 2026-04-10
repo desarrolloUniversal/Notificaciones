@@ -523,14 +523,6 @@ function App() {
       return
     }
 
-    try {
-      new URL(url)
-    } catch {
-      setUrgentValidationMessage('La URL no es válida.\n\nDebe comenzar con http:// o https://')
-      setIsUrgentValidationModalOpen(true)
-      return
-    }
-
     if (!idArticulo) {
       setUrgentValidationMessage('Por favor ingresa el ID del artículo.')
       setIsUrgentValidationModalOpen(true)
