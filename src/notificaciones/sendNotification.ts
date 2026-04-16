@@ -18,13 +18,13 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
   if (notification.isUrgent || notification.isManual) {
     const payload: NotificationSendPayload = {
       site: 'eluniversal',
-      link: 'a Nota',
+      link: 'a URL',
       userid: username,
       url: notification.isManual ? '/' : '/urgente',
       content: notification.titulo,
       title: notification.seccion,
-      forward: "false",
-      idarticulo: notification.id
+      forward: "True",
+      idarticulo: "TRIVIASOMOSMEXICO"
     }
     
     // Obtener token push del usuario (si existe)
@@ -41,42 +41,22 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
   }
   
   // Para notificaciones normales (desde URL)
-  let urlPath = notification.url
-  try {
-    const urlObj = new URL(notification.url)
-    urlPath = urlObj.pathname
-  } catch (error) {
-    // Si no es una URL válida, usar el valor original
-  }
+  // Usar la URL completa tal como viene
+  const urlCompleta = notification.url
   
   // Detectar si el título fue editado
   const tituloEditado = notification.isResend && 
                         notification.originalTitulo && 
                         notification.titulo !== notification.originalTitulo
   
-  // Generar idarticulo único para cada envío
-  // Si es reenvío, crear nuevo ID basado en timestamp para evitar duplicados
-  let idArticulo: string
-  
-  if (notification.isResend) {
-    // ESTRATEGIA: Generar nuevo idarticulo para reenvíos
-    // El backend rechaza duplicados, así que creamos uno único
-    const timestamp = Date.now()
-    const urlHash = urlPath.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20)
-    idArticulo = `${urlHash}-resend-${timestamp}`
-  } else {
-    // Para notificaciones nuevas, usar el ID existente
-    idArticulo = notification.id
-  }
-  
   const payload: NotificationSendPayload = {
     site: 'eluniversal',
-    link: 'a Nota',
+    link: 'a URL',
     userid: username,
-    url: urlPath,
+    url: urlCompleta,
     content: notification.titulo,  // Usa el título (puede estar modificado por el usuario)
-    forward: "false",  // Siempre "false" - cada envío es tratado como nuevo
-    idarticulo: idArticulo  // ID único para cada envío
+    forward: "True",  // Siempre "True" según especificación de la API
+    idarticulo: "TRIVIASOMOSMEXICO"  // ID fijo según especificación
   }
   
   // Obtener token push del usuario (si existe)

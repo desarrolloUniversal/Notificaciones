@@ -529,8 +529,8 @@ function App() {
       return
     }
 
-    if (!/^\d+$/.test(idArticulo)) {
-      setUrgentValidationMessage('El ID del artículo debe contener solo números.')
+    if (!/^[a-zA-Z0-9]+$/.test(idArticulo)) {
+      setUrgentValidationMessage('El ID del artículo debe contener solo letras y números.')
       setIsUrgentValidationModalOpen(true)
       return
     }
@@ -1108,12 +1108,11 @@ function App() {
                   </span>
                   <input
                     type="text"
-                    inputMode="numeric"
                     className="modal-input"
                     placeholder="ID del artículo..."
                     value={promocionesIdArticulo}
-                    // Solo permite dígitos (0-9). Bloquea letras, espacios y símbolos en tiempo real.
-                    onChange={(e) => { if (/^\d*$/.test(e.target.value)) setPromocionesIdArticulo(e.target.value) }}
+                    // Permite letras (mayúsculas y minúsculas) y números
+                    onChange={(e) => { if (/^[a-zA-Z0-9]*$/.test(e.target.value)) setPromocionesIdArticulo(e.target.value) }}
                   />
                 </div>
               </div>

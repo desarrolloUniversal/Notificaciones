@@ -96,8 +96,8 @@ export interface NotificationSendPayload {
   link: string
   userid: string
   id?: string        // opcional: ExponentPushToken del usuario - Se incluye automáticamente si el usuario guardó su token, enviando la notificación solo a su dispositivo. Si se omite, se envía a todos los suscriptores.
-  url?: string       // opcional: URL del artículo
+  url?: string       // opcional: URL completa del artículo
   title?: string     // opcional: Título de la notificación (sección)
   content?: string   // opcional: Contenido de la notificación (título del artículo)
-  forward: "true" | "false"   // requerido: "true" si es reenvío, "false" si es notificación nueva (string)
+  forward: "True" | "false"   // requerido: "True" si es reenvío, "false" si es notificación nueva (string)
 }
