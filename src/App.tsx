@@ -264,6 +264,26 @@ function App() {
     // Validar si es una notificación urgente y verificar sus datos
     const pending = getPendingNotifications().find(n => n.id === notificationId)
     
+    if (pending?.area === 'promociones') {
+      if (editingSectionId === notificationId || editingTitleId === notificationId) {
+        setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de hacer test.\n\nPresiona el botón ✓ para guardar.')
+        setIsUrgentValidationModalOpen(true)
+        return
+      }
+      if (!pending.seccion || pending.seccion.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar el Título de la notificación antes de hacer test.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingSectionId(notificationId)
+        return
+      }
+      if (!pending.titulo || pending.titulo.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar el Contenido de la notificación antes de hacer test.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingTitleId(notificationId)
+        return
+      }
+    }
+
     if (pending?.isUrgent || pending?.isManual) {
       // Validar si hay edición activa (datos sin guardar)
       if (editingSectionId === notificationId || editingTitleId === notificationId) {
@@ -556,6 +576,19 @@ function App() {
     setIsPromocionesModalOpen(false)
     setPromocionesUrlInput('')
     setPromocionesIdArticulo('')
+
+    // Activar edición de sección (→ title) y título (→ content) en tabla de pendientes
+    setEditingSectionId(notification.id)
+    setEditingSectionValue('')
+    setEditingTitleId(notification.id)
+    setEditingTitleValue('')
+
+    // Scroll a la tabla de pendientes
+    setTimeout(() => {
+      if (pendingSectionRef.current) {
+        pendingSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 300)
   }
 
   const handleRemovePending = (id: string) => {
@@ -616,6 +649,29 @@ function App() {
   }
 
   const handleApplyPending = async (pending: PendingNotificationFromUrl) => {
+    // Validar si hay edición activa para Promociones
+    if (pending.area === 'promociones' && (editingSectionId === pending.id || editingTitleId === pending.id)) {
+      setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de enviar la notificación.\n\nPresiona el botón ✓ para guardar.')
+      setIsUrgentValidationModalOpen(true)
+      return
+    }
+
+    // Validación específica para Promociones
+    if (pending.area === 'promociones') {
+      if (!pending.seccion || pending.seccion.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar el Título de la notificación antes de enviar.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingSectionId(pending.id)
+        return
+      }
+      if (!pending.titulo || pending.titulo.trim() === '') {
+        setUrgentValidationMessage('Debe ingresar el Contenido de la notificación antes de enviar.')
+        setIsUrgentValidationModalOpen(true)
+        setEditingTitleId(pending.id)
+        return
+      }
+    }
+
     // Validar si hay edición activa para urgentes / manuales
     if ((pending.isUrgent || pending.isManual) && (editingSectionId === pending.id || editingTitleId === pending.id)) {
       setUrgentValidationMessage('Debes guardar los cambios de Sección y Título antes de enviar la notificación.\n\nPresiona el botón ✓ para guardar.')

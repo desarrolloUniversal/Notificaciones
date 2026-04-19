@@ -99,5 +99,5 @@ export interface NotificationSendPayload {
   url?: string       // opcional: URL completa del artículo
   title?: string     // opcional: Título de la notificación (sección)
   content?: string   // opcional: Contenido de la notificación (título del artículo)
-  forward: "True" | "false"   // requerido: "True" si es reenvío, "false" si es notificación nueva (string)
+  forward: "True" | "true" | "false"   // requerido: Promociones="True", Urgente/Manual/Normal="false"
 }

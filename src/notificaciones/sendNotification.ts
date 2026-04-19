@@ -13,24 +13,44 @@ const SEND_NOTIFICATION_ENDPOINT = import.meta.env.VITE_SEND_NOTIFICATION_URL as
  */
 export const prepareSendPayload = (notification: PendingNotificationFromUrl): NotificationSendPayload => {
   const username = useAuthStore.getState().username || ''
-  
-  // Para notificaciones urgentes y manuales, manejar diferente (sin URL real)
+
+  // ─── FLUJO PROMOCIONES (TRIVIASOMOSMEXICO) ────────────────────────────
+  // Único flujo con idarticulo fijo, URL completa, link 'a URL', forward "True"
+  if (notification.area === 'promociones') {
+    const payload: NotificationSendPayload = {
+      site: 'eluniversal',
+      idarticulo: notification.id,   // usuario escribe TRIVIASOMOSMEXICO en el modal
+      url: notification.url,         // usuario ingresa en el modal
+      title: notification.seccion,   // usuario llena en tabla de pendientes
+      content: notification.titulo,  // usuario llena en tabla de pendientes
+      userid: username,
+      link: 'a URL',
+      forward: 'True',
+    }
+    const pushToken = getPushToken(username)
+    if (pushToken) {
+      payload.id = pushToken
+    }
+    return payload
+  }
+
+  // ─── FLUJO URGENTE / MANUAL ──────────────────────────────────────────
+  // link 'a Nota', forward "false", idarticulo dinámico (notification.id)
   if (notification.isUrgent || notification.isManual) {
     const payload: NotificationSendPayload = {
       site: 'eluniversal',
-      link: 'a URL',
+      link: 'a Nota',
       userid: username,
       url: notification.isManual ? '/' : '/urgente',
       content: notification.titulo,
       title: notification.seccion,
-      forward: "True",
-      idarticulo: "TRIVIASOMOSMEXICO"
+      forward: 'false',
+      idarticulo: notification.id
     }
     
-    // Obtener token push del usuario (si existe)
     const pushToken = getPushToken(username)
     if (pushToken) {
-      payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
+      payload.id = pushToken
     }
     
     if (notification.isManual) {
@@ -40,33 +60,48 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     return payload
   }
   
-  // Para notificaciones normales (desde URL)
-  // Usar la URL completa tal como viene
-  const urlCompleta = notification.url
-  
+  // ─── FLUJO NORMAL / REENVÍO ──────────────────────────────────────────
+  // link 'a Nota', forward "false", solo pathname, idarticulo dinámico
+  let urlPath = notification.url
+  try {
+    const urlObj = new URL(notification.url)
+    urlPath = urlObj.pathname
+  } catch {
+    // Si no es una URL válida, usar el valor original
+  }
+
   // Detectar si el título fue editado
   const tituloEditado = notification.isResend && 
                         notification.originalTitulo && 
                         notification.titulo !== notification.originalTitulo
-  
+
+  // Generar idarticulo único para cada envío
+  // Si es reenvío, crear nuevo ID basado en timestamp para evitar duplicados en el backend
+  let idArticulo: string
+  if (notification.isResend) {
+    const timestamp = Date.now()
+    const urlHash = urlPath.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20)
+    idArticulo = `${urlHash}-resend-${timestamp}`
+  } else {
+    idArticulo = notification.id
+  }
+
   const payload: NotificationSendPayload = {
     site: 'eluniversal',
-    link: 'a URL',
+    link: 'a Nota',
     userid: username,
-    url: urlCompleta,
-    content: notification.titulo,  // Usa el título (puede estar modificado por el usuario)
-    forward: "True",  // Siempre "True" según especificación de la API
-    idarticulo: "TRIVIASOMOSMEXICO"  // ID fijo según especificación
+    url: urlPath,
+    content: notification.titulo,
+    forward: 'false',
+    idarticulo: idArticulo
   }
   
-  // Obtener token push del usuario (si existe)
   const pushToken = getPushToken(username)
   if (pushToken) {
-    payload.id = pushToken // id = ExponentPushToken para enviar solo a este dispositivo
+    payload.id = pushToken
   }
-  
+
   // Incluir sección (title) si el título no fue editado O si es un reenvío
-  // Para reenvíos, siempre incluir la sección para que llegue completa
   if (!tituloEditado || notification.isResend) {
     payload.title = notification.seccion
   }
@@ -136,8 +171,12 @@ export const sendNotification = async (notification: PendingNotificationFromUrl)
  * @returns true si la notificación puede ser enviada
  */
 export const canSendNotification = (notification: PendingNotificationFromUrl): boolean => {
-  // Validación para notificaciones urgentes y manuales (sin URL real)
-  if (notification.isUrgent || notification.isManual) {
+  // Validación para Promociones: url (modal), seccion (title) y titulo (content) obligatorios
+  if (notification.area === 'promociones') {
+    if (!notification.url || notification.url.trim() === '') return false
+    if (!notification.seccion || notification.seccion.trim() === '') return false
+    if (!notification.titulo || notification.titulo.trim() === '') return false
+  } else if (notification.isUrgent || notification.isManual) {
     // Solo necesitan sección y título
     if (!notification.seccion || notification.seccion.trim() === '') {
       return false
