@@ -344,7 +344,7 @@ function App() {
     // Validar formato del token: ExponentPushToken[...]
     if (!validatePushToken(token)) {
       setTokenValidationIcon('error')
-      setTokenValidationMessage('Token inválido\n\nEl token debe tener el formato de ejemplo: ExponentPushToken[código]')
+      setTokenValidationMessage('Token inválido\n\nEl token debe tener el formato: ExponentPushToken[codigo] o ExpoPushToken[codigo]')
       setIsTokenValidationModalOpen(true)
       return
     }
@@ -1265,7 +1265,7 @@ function App() {
                 </div>
               )}
               <div className="modal-info" style={{ marginTop: '1rem', padding: '0.8rem', background: '#f3e5f5', borderRadius: '8px', fontSize: '0.85rem', color: '#7d3c98' }}>
-                <strong>Ejemplo de token:</strong> ExponentPushToken[código]
+                <strong>Ejemplo de token:</strong> ExponentPushToken[codigo] o ExpoPushToken[codigo]
               </div>
               <div className="modal-instructions" style={{ marginTop: '0.8rem', padding: '1rem', background: '#ffffff', border: '2px solid #e8daef', borderRadius: '8px' }}>
                 <div 

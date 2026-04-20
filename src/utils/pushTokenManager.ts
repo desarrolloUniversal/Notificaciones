@@ -11,10 +11,10 @@ export interface PushTokenData {
 
 /**
  * Valida el formato del token push de Expo
- * Formato: ExponentPushToken[código]
+ * Formato: ExponentPushToken[codigo] o ExpoPushToken[codigo]
  */
 export const validatePushToken = (token: string): boolean => {
-  const tokenRegex = /^ExponentPushToken\[[a-zA-Z0-9_-]+\]$/
+  const tokenRegex = /^(ExponentPushToken|ExpoPushToken)\[[a-zA-Z0-9_-]+\]$/
   return tokenRegex.test(token)
 }
 
