@@ -34,29 +34,49 @@ export const prepareSendPayload = (notification: PendingNotificationFromUrl): No
     return payload
   }
 
-  // ─── FLUJO URGENTE / MANUAL ──────────────────────────────────────────
+  // ─── FLUJO URGENTE ───────────────────────────────────────────────────
+  // idarticulo fijo 'HOME_ELUNIVERSAL', url '/', link 'a Home', forward "True"
+  if (notification.isUrgent) {
+    const payload: NotificationSendPayload = {
+      site: 'eluniversal',
+      idarticulo: 'HOME_ELUNIVERSAL',
+      url: '/',
+      title: notification.seccion,
+      content: notification.titulo,
+      userid: username,
+      link: 'a Home',
+      forward: 'True',
+    }
+
+    const pushToken = getPushToken(username)
+    if (pushToken) {
+      payload.id = pushToken
+    }
+
+    return payload
+  }
+
+  // ─── FLUJO MANUAL ────────────────────────────────────────────────────
   // link 'a Nota', forward "false", idarticulo dinámico (notification.id)
-  if (notification.isUrgent || notification.isManual) {
+  if (notification.isManual) {
     const payload: NotificationSendPayload = {
       site: 'eluniversal',
       link: 'a Nota',
       userid: username,
-      url: notification.isManual ? '/' : '/urgente',
+      url: '/',
       content: notification.titulo,
       title: notification.seccion,
       forward: 'false',
       idarticulo: notification.id
     }
-    
+
     const pushToken = getPushToken(username)
     if (pushToken) {
       payload.id = pushToken
     }
-    
-    if (notification.isManual) {
-      console.log('📝 [Manual "/"] Payload que se enviará:', JSON.stringify(payload, null, 2))
-    }
-    
+
+    console.log('📝 [Manual "/"] Payload que se enviará:', JSON.stringify(payload, null, 2))
+
     return payload
   }
   
